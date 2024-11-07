@@ -13,7 +13,8 @@ namespace k_13 {
         ANOTHER,            // опрацювання інших символів
         END_OF_FILE,        // кінець файлу
         S_COMMENT,          // початок коментаря
-        COMMENT             // видалення коментаря
+        COMMENT,            // видалення коментаря
+        STRING              // опрацювання рядка
     };
 
     enum class TokenType {
@@ -92,7 +93,7 @@ namespace k_13 {
             {"get", TokenType::GET},
             {"put", TokenType::PUT},
             {"string", TokenType::STRING},
-            {"int16_t", TokenType::INT},
+            {"int", TokenType::INT},
             {"bool", TokenType::BOOL},
             {"true", TokenType::TRUE},
             {"false", TokenType::FALSE},

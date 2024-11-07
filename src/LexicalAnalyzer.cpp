@@ -136,7 +136,7 @@ namespace k_13 {
                 case State::SEPARATORS:
                     std::cout << "[LexicalAnalyzer::readFromFile] State SEPARATORS" << std::endl;
                     if (ch == '\n')
-                    line++;
+                        line++;
                     file.get(ch);
                     state = State::START;
                     break;
@@ -147,17 +147,56 @@ namespace k_13 {
                         state = State::END_OF_FILE;
                         break;
                     } 
-                    nch = file.peek();
-                    if(nch == '\t' || nch == '\n' || nch == ' ' || nch == '$' || nch <= 'z' && nch >= 'a' 
-                        || nch <= 'Z' && nch >= 'A' || nch <= '9' && nch >= '0') {
-                        state = State::FINISH;
-                        token = std::make_pair(std::string(1, ch), line);
-                        {
-                            std::unique_lock<std::mutex> lock(mtx);
-                            inputTokens.push(token);
-                            getTocken.notify_one();
-                        }
+                    if(ch == '"') {
+                        state = State::STRING;
+                        break;
                     }
+
+                    buffer = ch;
+                    nch = file.peek();
+
+                    if(ch == ':' && nch == '=') {
+                        file.get(ch);
+                        buffer += ch;
+                    } else if(ch == '<' && nch == '>') {
+                        file.get(ch);
+                        buffer += ch;
+                    } else if(ch == '&' && nch == '&') {
+                        file.get(ch);
+                        buffer += ch;
+                    } else if(ch == '|' && nch == '|') {
+                        file.get(ch);
+                        buffer += ch;
+                    } else if(ch == '!' && nch == '!') {
+                        file.get(ch);
+                        buffer += ch;
+                    }
+                    state = State::FINISH;
+                    token = std::make_pair(buffer, line);
+                    {
+                        std::unique_lock<std::mutex> lock(mtx);
+                        inputTokens.push(token);
+                        getTocken.notify_one();
+                    }
+                    file.get(ch);
+                    break;
+                    
+                case State::STRING:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State STRING" << std::endl;
+                    buffer = ch;
+                    file.get(ch);
+                    while (ch != '"') {
+                        buffer += ch;
+                        file.get(ch);
+                    }
+                    buffer += ch;
+                    token = std::make_pair(buffer, line);
+                    {
+                        std::unique_lock<std::mutex> lock(mtx);
+                        inputTokens.push(token);
+                        getTocken.notify_one();
+                    }
+                    state = State::FINISH;
                     file.get(ch);
                     break;
 
