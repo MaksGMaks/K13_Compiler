@@ -1,0 +1,25 @@
+program test 
+start
+var int var1, bool varb, string vars;
+var1 := 10;
+varb:=true;
+vars:= "test string with big lenth";
+false + - / * % 
+$$ test comment
+if
+goto
+for 
+to
+next
+get
+put
+const
+le ge
+=
+<>
+&& || !!
+!!()
+lastIN
+finish
+TestUn
+testUnknow 
