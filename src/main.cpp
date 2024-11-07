@@ -2,7 +2,8 @@
 #include "LexicalAnalyzer.hpp"
 #include <filesystem>
 
-void writeTokens(const std::vector<k_13::Token> &tokens);
+void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
+                 const std::vector<k_13::UnknownLexem> &unknownLexems);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -17,7 +18,7 @@ int main(int argc, char *argv[]) {
     {
     case 0:
         std::cout << "Done\n";
-        writeTokens(lexic.getTokens());
+        writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
         break;
     case -1:
         std::cout << "Wrong file type. Require .k13\n";
@@ -31,23 +32,48 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void writeTokens(const std::vector<k_13::Token> &tokens) {
+void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
+                 const std::vector<k_13::UnknownLexem> &unknownLexems) {
     k_13::constants_k13 constants;
     std::filesystem::path outputFile = std::filesystem::current_path() / "allLexems.txt";
     std::ofstream file(outputFile);
     if(file.is_open()) {
         file << "|---------------------------------------------------------------------|\n";
-        file << "| line number | token | value | token code | type of token |\n";
+        file << "|                          Lexems table                               |\n";
         file << "|---------------------------------------------------------------------|\n";
-        for(auto token : tokens) {
-            file << "| " << token.line << " | " << token.value << " | " << token.constant << " | " << static_cast<std::underlying_type_t<k_13::TokenType>>(token.type) << " | " ;
-            for(auto &enumToString : constants.enumToStringTokens) {
-                if(token.type == enumToString.first) {
+        file << "| line number | lexem | value | lexem code | type of lexem |\n";
+        file << "|---------------------------------------------------------------------|\n";
+        for(auto lexem : lexems) {
+            file << "| " << lexem.line << " | " << lexem.value << " | " << lexem.constant << " | " << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " | " ;
+            for(auto &enumToString : constants.enumToStringLexems) {
+                if(lexem.type == enumToString.first) {
                     file << enumToString.second << " |\n";
                     break;
                 }
             }
             file << "|---------------------------------------------------------------------|\n";
         }
+
+        file << "\n|---------------------------------------------------------------------|\n";
+        file << "|                          Literals table                             |\n";
+        file << "|---------------------------------------------------------------------|\n";
+        file << "| literal id | value |\n";
+        file << "|---------------------------------------------------------------------|\n";
+        for(auto literal : literals) {
+            file << "| " << literal.id << " | " << literal.value << " |\n";
+            file << "|---------------------------------------------------------------------|\n";
+        }
+
+        file << "\n|---------------------------------------------------------------------|\n";
+        file << "|                      Unknown lexems table                           |\n";
+        file << "|---------------------------------------------------------------------|\n";
+        file << "| unknown lexem id | value |\n";
+        file << "|---------------------------------------------------------------------|\n";
+        for(auto unknownLexem : unknownLexems) {
+            file << "| " << unknownLexem.id << " | " << unknownLexem.value << " |\n";
+            file << "|---------------------------------------------------------------------|\n";
+        }
+
+        file.close();
     }
 }
