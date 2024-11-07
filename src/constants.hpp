@@ -42,7 +42,6 @@ namespace k_13 {
         STRING,             // string (рядок)
         INT,                // int16_t (ціле число)
         BOOL,               // bool (логічний тип)
-        CONST,              // const (константа)
 
         ASSIGN,             // := (присвоєння)
         ADD,                // + (додавання)
@@ -97,7 +96,6 @@ namespace k_13 {
             {"bool", TokenType::BOOL},
             {"true", TokenType::TRUE},
             {"false", TokenType::FALSE},
-            {"const", TokenType::CONST},
             {"le", TokenType::LESS},
             {"ge", TokenType::GREATER}
         };
@@ -113,7 +111,53 @@ namespace k_13 {
             {"<>", TokenType::NEQUAL},
             {"&&", TokenType::AND},
             {"||", TokenType::OR},
-            {"!!", TokenType::NOT}
+            {"!!", TokenType::NOT},
+            {"(", TokenType::LPAREN},
+            {")", TokenType::RPAREN},
+            {";", TokenType::SEMICOLON},
+            {",", TokenType::COMMA},
+            {"\"", TokenType::QUOTES}
+        };
+
+        std::map<TokenType, std::string> enumToStringTokens = {
+            {TokenType::PROGRAM, "ProgramKeyword"},
+            {TokenType::START, "StartOperator"},
+            {TokenType::FINISH, "FinishOperator"},
+            {TokenType::VAR, "VarKeyword"},
+            {TokenType::IF, "IfKeyword"},
+            {TokenType::GOTO, "GotoKeyword"},
+            {TokenType::FOR, "ForKeyword"},
+            {TokenType::TO, "ToKeyword"},
+            {TokenType::NEXT, "NextKeyword"},
+            {TokenType::GET, "GetKeyword"},
+            {TokenType::PUT, "PutKeyword"},
+            {TokenType::IDENTIFIER, "Identifier"},
+            {TokenType::NUMBER, "Number"},
+            {TokenType::STRING_LITERAL, "StringLiteral"},
+            {TokenType::TRUE, "TrueConstant"},
+            {TokenType::FALSE, "FalseConstant"},
+            {TokenType::STRING, "StringType"},
+            {TokenType::INT, "IntType"},
+            {TokenType::BOOL, "BoolType"},
+            {TokenType::ASSIGN, "AssignOperator"},
+            {TokenType::ADD, "AddOperator"},
+            {TokenType::SUB, "SubOperator"},
+            {TokenType::MUL, "MulOperator"},
+            {TokenType::DIV, "DivOperator"},
+            {TokenType::MOD, "ModOperator"},
+            {TokenType::EQUAL, "EqualOperator"},
+            {TokenType::NEQUAL, "NotEqualOperator"},
+            {TokenType::LESS, "LessOperator"},
+            {TokenType::GREATER, "GreaterOperator"},
+            {TokenType::AND, "AndOperator"},
+            {TokenType::OR, "OrOperator"},
+            {TokenType::NOT, "NotOperator"},
+            {TokenType::LPAREN, "LeftParenthesis"},
+            {TokenType::RPAREN, "RightParenthesis"},
+            {TokenType::SEMICOLON, "Semicolon"},
+            {TokenType::COMMA, "Comma"},
+            {TokenType::QUOTES, "Quotes"},
+            {TokenType::UNKNOWN, "UnknownToken"}
         };
     };
     

@@ -4,6 +4,10 @@ namespace k_13 {
         isEndOfFile = false;
     }
 
+    const std::vector<Token> LexicalAnalyzer::getTokens() {
+        return tokens;
+    }
+
     int LexicalAnalyzer::readFromFile(const std::string &filename) {
         if(filename.find(".k13") == filename.length() - 5) {
             return -1;
@@ -13,7 +17,7 @@ namespace k_13 {
             return -2;
         }
         
-        std::thread getTockenType(&LexicalAnalyzer::checkToken, this);
+        std::thread getTockenType(&LexicalAnalyzer::sortToken, this);
 
         State state = State::START;
         isEndOfFile = false;
@@ -23,10 +27,12 @@ namespace k_13 {
         int line = 1;
         file.get(ch);
 
+        std::cout << "[LexicalAnalyzer::readFromFile] Start reading file" << std::endl;
         while (1)
         {
             switch (state) {
                 case State::START:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State START" << std::endl;
                     if (file.eof())
                         state = State::END_OF_FILE;
                     else if (ch <= 'z' && ch >= 'a' || ch <= 'Z' && ch >= 'A')
@@ -42,6 +48,7 @@ namespace k_13 {
                     break;
                     
                 case State::FINISH:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State FINISH" << std::endl;
                     if (!file.eof())
                         state = State::START;
                     else
@@ -49,6 +56,7 @@ namespace k_13 {
                     break;
 
                 case State::END_OF_FILE:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State END_OF_FILE" << std::endl;
                     {
                         std::unique_lock<std::mutex> lock(mtx);
                         isEndOfFile = true;
@@ -61,6 +69,7 @@ namespace k_13 {
                     break;
 
                 case State::LETTER:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State LETTER" << std::endl;
                     buffer = ch;
                     file.get(ch);
                     while (ch <= 'z' && ch >= 'a' || ch <= 'Z' && ch >= 'A' || ch <= '9' && ch >= '0') {
@@ -77,6 +86,7 @@ namespace k_13 {
                     break;
 
                 case State::DIGIT:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State DIGIT" << std::endl;
                     buffer = ch;
                     file.get(ch);
                     while (ch <= '9' && ch >= '0') {
@@ -93,6 +103,7 @@ namespace k_13 {
                     break;
 
                 case State::S_COMMENT:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State S_COMMENT" << std::endl;
                     file.get(ch);
                     if (file.eof())
                         state = State::END_OF_FILE;
@@ -109,6 +120,7 @@ namespace k_13 {
                     break;
 
                 case State::COMMENT:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State COMMENT" << std::endl;
                     while (ch != '\n' && !file.eof()) {
                         file.get(ch);
                     }
@@ -120,7 +132,9 @@ namespace k_13 {
                     file.get(ch);
                     state = State::START;
                     break;
+
                 case State::SEPARATORS:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State SEPARATORS" << std::endl;
                     if (ch == '\n')
                     line++;
                     file.get(ch);
@@ -128,6 +142,7 @@ namespace k_13 {
                     break;
 
                 case State::ANOTHER:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State ANOTHER" << std::endl;
                     if(file.eof()) {
                         state = State::END_OF_FILE;
                         break;
@@ -143,9 +158,11 @@ namespace k_13 {
                             getTocken.notify_one();
                         }
                     }
+                    file.get(ch);
                     break;
 
                 default:
+                    std::cout << "[LexicalAnalyzer::readFromFile] State default" << std::endl;
                     token = std::make_pair(std::string(1, ch), line);
                     {
                         std::unique_lock<std::mutex> lock(mtx);
@@ -159,25 +176,8 @@ namespace k_13 {
         }
     }
 
-    void LexicalAnalyzer::checkToken() {
-        while (!isEndOfFile) {
-            {
-                std::unique_lock<std::mutex> lock(mtx);
-                getTocken.wait(lock);
-            }
-            if(isEndOfFile) {
-                return;
-            }
-            std::string token{};
-            int tokenLine{};
-            {
-                std::unique_lock<std::mutex> lock(mtx);
-                token = inputTokens.front().first;
-                tokenLine = inputTokens.front().second;
-                inputTokens.pop();
-            }
-
-            for(auto &operator_ : constants.operators_k13) {
+    void LexicalAnalyzer::checkToken(int tokenLine, std::string token) {
+        for(auto &operator_ : constants.operators_k13) {
                 if(token == operator_.first) {
                     tokens.push_back({operator_.second, token, tokenLine});
                     return;
@@ -196,7 +196,7 @@ namespace k_13 {
                 if(token.length() > 16) {
                     tokens.push_back({TokenType::UNKNOWN, token, tokenLine});
                 } else
-                    tokens.push_back({TokenType::NUMBER, token, tokenLine});
+                    tokens.push_back({TokenType::NUMBER, token, tokenLine, number});
                 
             } catch (const std::exception& e) {
                 if(token[0] == '"' && token[token.length() - 1] == '"') {
@@ -209,6 +209,31 @@ namespace k_13 {
                     tokens.push_back({TokenType::UNKNOWN, token, tokenLine});
                 }
             }
+    }
+
+    void LexicalAnalyzer::sortToken() {
+        while (!isEndOfFile) {
+            {
+                std::unique_lock<std::mutex> lock(mtx);
+                if(inputTokens.empty()) {
+                    getTocken.wait(lock);
+                }
+            }
+            if(isEndOfFile) {
+                return;
+            }
+            std::string token{};
+            int tokenLine{};
+            {
+                std::unique_lock<std::mutex> lock(mtx);
+                token = inputTokens.front().first;
+                tokenLine = inputTokens.front().second;
+                inputTokens.pop();
+            }
+
+            checkToken(tokenLine, token);
+            
+            
         }
     }
 }
