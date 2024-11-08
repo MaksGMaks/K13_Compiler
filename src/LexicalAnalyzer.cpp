@@ -88,9 +88,11 @@ namespace k_13 {
                 case State::LETTER:
                     buffer = ch;
                     file.get(ch);
-                    while (ch <= 'z' && ch >= 'a' || ch <= 'Z' && ch >= 'A' || ch <= '9' && ch >= '0') {
+                    while (ch <= 'z' && ch >= 'a' || ch <= 'Z' && ch >= 'A' || ch <= '9' && ch >= '0' || ch == '_') {
                         buffer += ch;
                         file.get(ch);
+                        if(file.eof())
+                            break;
                     }
                     token = std::make_pair(buffer, line);
                     {
@@ -107,6 +109,8 @@ namespace k_13 {
                     while (ch <= '9' && ch >= '0') {
                         buffer += ch;
                         file.get(ch);
+                        if(file.eof())
+                            break;
                     }
                     token = std::make_pair(buffer, line);
                     {

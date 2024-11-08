@@ -1,6 +1,6 @@
 program test 
 start
-var int var1, bool varb, string vars;
+var int16_t var1, bool varb, string vars;
 var1 := 10;
 varb:=true;
 vars:= "test string with big lenth";
@@ -23,3 +23,6 @@ lastIN
 finish
 TestUn
 testUnknow 
+test_I
+test_Unknown
+_testU

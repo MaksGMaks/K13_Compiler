@@ -5,16 +5,16 @@
 
 namespace k_13 {
     enum class State {
-        START,              // початок виділення чергової лексеми
-        FINISH,             // кінець виділення чергової лексеми
-        LETTER,             // опрацювання слів (ключові слова і ідентифікатори)
-        DIGIT,              // опрацювання цифри
-        SEPARATORS,         // видалення пробілів, символів табуляції і переходу на новий рядок
-        ANOTHER,            // опрацювання інших символів
-        END_OF_FILE,        // кінець файлу
-        S_COMMENT,          // початок коментаря
-        COMMENT,            // видалення коментаря
-        STRING              // опрацювання рядка
+        START,              // start of extracting the next lexeme
+        FINISH,             // end of extracting the next lexeme
+        LETTER,             // processing words (keywords and identifiers)
+        DIGIT,              // processing digits
+        SEPARATORS,         // removing spaces, tab characters, and new line characters
+        ANOTHER,            // processing other characters
+        END_OF_FILE,        // end of file
+        S_COMMENT,          // start of comment
+        COMMENT,            // removing comment
+        STRING              // processing string
     };
 
     enum class LexemType {
@@ -34,41 +34,41 @@ namespace k_13 {
         GET,                // get (input)
         PUT,                // put (output)
 
-        IDENTIFIER,         // ідентифікатор
-        NUMBER,             // число
-        STRING_LITERAL,     // рядок
+        IDENTIFIER,         // identifier
+        NUMBER,             // number
+        STRING_LITERAL,     // string literal
         TRUE,               // true
         FALSE,              // false
 
-        STRING,             // string (рядок)
-        INT,                // int16_t (ціле число)
-        BOOL,               // bool (логічний тип)
+        STRING,             // string (string type)
+        INT,                // int16_t (integer type)
+        BOOL,               // bool (boolean type)
 
-        ASSIGN,             // := (присвоєння)
-        ADD,                // + (додавання)
-        SUB,                // - (віднімання)
-        MUL,                // * (множення)
-        DIV,                // / (цілочисельне ділення)
-        MOD,                // % (остача від ділення)
+        ASSIGN,             // := (assignment)
+        ADD,                // + (addition)
+        SUB,                // - (subtraction)
+        MUL,                // * (multiplication)
+        DIV,                // / (integer division)
+        MOD,                // % (modulus)
 
-        EQUAL,              // = (рівність)
-        NEQUAL,             // <> (нерівність)
-        LESS,               // le (менше)
-        GREATER,            // ge (більше)
+        EQUAL,              // = (equality)
+        NEQUAL,             // <> (inequality)
+        LESS,               // le (less than)
+        GREATER,            // ge (greater than)
 
-        AND,                // && (логічне І)
-        OR,                 // || (логічне АБО)
-        NOT,                // !! (логічне НІ)
+        AND,                // && (logical AND)
+        OR,                 // || (logical OR)
+        NOT,                // !! (logical NOT)
 
-        LPAREN,             // ( (ліва дужка)
-        RPAREN,             // ) (права дужка)
+        LPAREN,             // ( (left parenthesis)
+        RPAREN,             // ) (right parenthesis)
 
-        SEMICOLON,          // ; (крапка з комою)
-        COMMA,              // , (кома)
+        SEMICOLON,          // ; (semicolon)
+        COMMA,              // , (comma)
 
-        QUOTES,             // " (межі рядка)
+        QUOTES,             // " (string boundaries)
 
-        UNKNOWN             // невідомий токен
+        UNKNOWN             // unknown token
     };
 
     struct Lexem {
@@ -103,7 +103,7 @@ namespace k_13 {
             {"get", LexemType::GET},
             {"put", LexemType::PUT},
             {"string", LexemType::STRING},
-            {"int", LexemType::INT},
+            {"int16_t", LexemType::INT},
             {"bool", LexemType::BOOL},
             {"true", LexemType::TRUE},
             {"false", LexemType::FALSE},
