@@ -1,28 +1,23 @@
-program test 
+program test;
 start
 var int16_t var1, bool varb, string vars;
 var1 := 10;
 varb:=true;
-vars:= "test string with big lenth";
-false + - / * % 
-$$ test comment
-if
-goto
-for 
-to
-next
-get
-put
-const
-le ge
-=
-<>
-&& || !!
-!!()
-lastIN
+vars:= "" + 1;
+if(var1 = "test") goto yes;
+goto no;
+
+yes start
+    var;
+    vars := "Var1 is equal 10";
+    goto end;
+    finish
+
+no start
+    var;
+    vars := "Var1 isn't equal 10";
+    goto end;
+    finish
+
+end;
 finish
-TestUn
-testUnknow 
-test_I
-test_Unknown
-_testU

@@ -47,9 +47,8 @@ namespace k_13 {
 
         file.get(ch);
 
-        std::cout << "[LexicalAnalyzer::readFromFile] Start reading file" << std::endl;
-        while (1)
-        {
+        std::cout << "[LexicalAnalyzer: Start reading file]" << std::endl;
+        while (1) {
             switch (state) {
                 case State::START:
                     if (file.eof())
@@ -230,43 +229,43 @@ namespace k_13 {
 
     void LexicalAnalyzer::checkLexem(int tokenLine, std::string token) {
         for(auto &operator_ : constants.operators_k13) {
-                if(token == operator_.first) {
-                    lexems.push_back({operator_.second, token, tokenLine});
-                    return;
-                }
+            if(token == operator_.first) {
+                lexems.push_back({operator_.second, token, tokenLine});
+                return;
             }
+        }
 
-            for(auto &keyword : constants.keywords_k13) {
-                if(token == keyword.first) {
-                    lexems.push_back({keyword.second, token, tokenLine});
-                    return;
-                }
+        for(auto &keyword : constants.keywords_k13) {
+            if(token == keyword.first) {
+                lexems.push_back({keyword.second, token, tokenLine});
+                return;
             }
+        }
 
-            try {
-                int number = std::stoi(token);
-                if(token.length() > 16) {
-                    lexems.push_back({LexemType::UNKNOWN, std::to_string(unknownId), tokenLine});
-                    unknownLexems.push_back({unknownId, token});
-                    unknownId++;
-                } else
-                    lexems.push_back({LexemType::NUMBER, token, tokenLine, number});
-                
-            } catch (const std::exception& e) {
-                if(token[0] == '"' && token[token.length() - 1] == '"') {
-                    lexems.push_back({LexemType::STRING_LITERAL, std::to_string(literalId), tokenLine});
-                    literals.push_back({literalId, token});
-                    literalId++;
-                    return;
-                } else if(token[0] >= 'a' && token[0] <= 'z' && token.length() <= 6) {
-                    lexems.push_back({LexemType::IDENTIFIER, token, tokenLine});
-                    return;
-                } else {
-                    lexems.push_back({LexemType::UNKNOWN, std::to_string(unknownId), tokenLine});
-                    unknownLexems.push_back({unknownId, token});
-                    unknownId++;
-                }
+        try {
+            int number = std::stoi(token);
+            if(token.length() > 16) {
+                lexems.push_back({LexemType::UNKNOWN, std::to_string(unknownId), tokenLine});
+                unknownLexems.push_back({unknownId, token});
+                unknownId++;
+            } else
+                lexems.push_back({LexemType::NUMBER, token, tokenLine, number});
+            
+        } catch (const std::exception& e) {
+            if(token[0] == '"' && token[token.length() - 1] == '"') {
+                lexems.push_back({LexemType::STRING_LITERAL, std::to_string(literalId), tokenLine});
+                literals.push_back({literalId, token});
+                literalId++;
+                return;
+            } else if(token[0] >= 'a' && token[0] <= 'z' && token.length() <= 6) {
+                lexems.push_back({LexemType::IDENTIFIER, token, tokenLine});
+                return;
+            } else {
+                lexems.push_back({LexemType::UNKNOWN, std::to_string(unknownId), tokenLine});
+                unknownLexems.push_back({unknownId, token});
+                unknownId++;
             }
+        }
     }
 
     void LexicalAnalyzer::sortToken() {

@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(ALL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexicalAnalyzer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/SyntaxAnalyzer.cpp
     )
 
 # Create executable

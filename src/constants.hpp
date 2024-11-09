@@ -171,6 +171,4 @@ namespace k_13 {
             {LexemType::UNKNOWN, "UnknownLexem"}
         };
     };
-    
-
 }
