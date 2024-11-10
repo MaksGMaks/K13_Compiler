@@ -13,7 +13,6 @@ namespace k_13
         position = 0;
 
         program();
-        std::cout << std::endl;
         if(errors > 0) {
             return -1;
         }
@@ -67,6 +66,9 @@ namespace k_13
 
     void SyntaxAnalyzer::program_body() {
         do {
+            if(position >= code.size() - 1) {
+                break;
+            }
             statement();
             if(!(code[position-1].type == LexemType::FINISH)) {    
                 if(!match(LexemType::SEMICOLON)) {
@@ -77,9 +79,6 @@ namespace k_13
                     }
                     errors++;
                 }
-            }
-            if(position >= code.size() - 1) {
-                break;
             }
         }
         while(code[position].type != LexemType::FINISH);
