@@ -244,7 +244,7 @@ namespace k_13 {
 
         try {
             int number = std::stoi(token);
-            if(token.length() > 16) {
+            if(number < -32768 || number > 32767) {
                 lexems.push_back({LexemType::UNKNOWN, std::to_string(unknownId), tokenLine});
                 unknownLexems.push_back({unknownId, token});
                 unknownId++;
