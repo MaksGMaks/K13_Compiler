@@ -20,8 +20,9 @@ Build system is cmake, minimum version is 3.5. If you don't have it - install.
 
 ## About K13 Compiler
 This compiler translate input language K13 into C and build it using gcc to create executable file.
-
-\n\tLanguage description in EBNF:\n
+```markdown
+Language description in EBNF:
+```markdown
 <program> = "program" <identifier> ";" <body>\n
 \n
 <body> = "start" <variables> <statements> "finish" 
