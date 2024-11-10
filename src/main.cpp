@@ -1,5 +1,6 @@
 #include <iostream>
 #include "LexicalAnalyzer.hpp"
+#include "SyntaxAnalyzer.hpp"
 #include <filesystem>
 
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
@@ -12,13 +13,27 @@ int main(int argc, char *argv[]) {
     }
     std::string path = argv[1];
     k_13::LexicalAnalyzer lexic;
+    k_13::SyntaxAnalyzer syntax;
     
     int lexicalAnalysStatus = lexic.readFromFile(path);
+    int syntaxAnalysStatus;
     switch (lexicalAnalysStatus)
     {
     case 0:
-        std::cout << "Done\n";
+        std::cout << "[INFO] Done\n";
         writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
+        syntaxAnalysStatus = syntax.analyze(lexic.getLexems(), lexic.getUnknownLexems());
+        switch (syntaxAnalysStatus)
+        {
+        case 0:
+            std::cout << "[INFO] Syntax analysis done" << std::endl;
+            break;
+        case -1:
+            std::cout << "[INFO] Syntax errors found. Build failed" << std::endl;
+            break;
+        default:
+            break;
+        }
         break;
     case -1:
         std::cout << "Wrong file type. Require .k13\n";
