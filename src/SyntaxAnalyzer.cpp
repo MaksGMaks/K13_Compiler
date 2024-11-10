@@ -9,18 +9,11 @@ namespace k_13
     int SyntaxAnalyzer::analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknownLexems) {
         std::cout << "[INFO] Starting syntax analysis" << std::endl;
         code = lexems;
+        unknown = unknownLexems;
         position = 0;
 
-        for(auto lexem : code) {
-            for(auto unknownLexem : unknownLexems) {
-                if(lexem.type == LexemType::UNKNOWN && lexem.value == std::to_string(unknownLexem.id)) {
-                    std::cerr << "\tSyntax error at line " << lexem.line << ": Unknown statement " << unknownLexem.value << std::endl;
-                    errors++;
-                }
-            }
-        }
-
         program();
+        std::cout << std::endl;
         if(errors > 0) {
             return -1;
         }
@@ -50,7 +43,11 @@ namespace k_13
             errors++;
         }
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            if(code[position].type == LexemType::UNKNOWN) {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << unknown[std::stoi(code[position].value)].value << std::endl;
+            } else {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            }
             errors++;
         }
     }
@@ -73,12 +70,19 @@ namespace k_13
             statement();
             if(!(code[position-1].type == LexemType::FINISH)) {    
                 if(!match(LexemType::SEMICOLON)) {
-                    std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+                    if(code[position].type == LexemType::UNKNOWN) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << unknown[std::stoi(code[position].value)].value << std::endl;
+                    } else {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << code[position].value << std::endl;
+                    }
                     errors++;
                 }
             }
+            if(position >= code.size() - 1) {
+                break;
+            }
         }
-        while(code[position].type != LexemType::FINISH && position < code.size());
+        while(code[position].type != LexemType::FINISH);
     }
 
     void SyntaxAnalyzer::variable_declaration() {
@@ -90,7 +94,11 @@ namespace k_13
             variable_list();
 
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            if(code[position].type == LexemType::UNKNOWN) {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << unknown[std::stoi(code[position].value)].value << std::endl;
+            } else {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            }
             errors++;
         }
     }
@@ -144,8 +152,13 @@ namespace k_13
                 }
                 break;
             default:
+                if(code[position].type == LexemType::UNKNOWN) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Unknown statement " << unknown[std::stoi(code[position].value)].value << std::endl;
+                } else {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Unknown statement " << code[position].value << std::endl;
+                }
+                errors++;
                 position++;
-                std::cerr << "\tSyntax error at line " << code[position].line << ": Unknown statement " << code[position].value << std::endl;
                 break;
         }
     }
@@ -191,7 +204,11 @@ namespace k_13
         }
         goto_expression();
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            if(code[position].type == LexemType::UNKNOWN) {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << unknown[std::stoi(code[position].value)].value << std::endl;
+            } else {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            }
             errors++;
         }
         goto_expression();

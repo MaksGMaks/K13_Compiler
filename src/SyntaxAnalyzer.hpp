@@ -19,6 +19,7 @@ namespace k_13
         int errors = 0;
         int position = 0;
         std::vector<Lexem> code;
+        std::vector<UnknownLexem> unknown;
 
         void program();
 

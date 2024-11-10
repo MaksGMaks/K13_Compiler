@@ -19,7 +19,7 @@ namespace k_13 {
     }
 
     int LexicalAnalyzer::readFromFile(const std::string &filename) {
-        if(filename.find(".k13") == filename.length() - 5) {
+        if(filename.find(".k13") != filename.length() - 4) {
             return -1;
         }
         std::ifstream file(filename);
