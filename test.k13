@@ -3,9 +3,9 @@ start
 var int16_t var1, bool varb, string vars;
 var1 := 10;
 varb:=true;
-vars:= "" + 1;
-if(var1 = "test") goto yes;
-goto no;
+vars:= "";
+if((!!(var1 = 10)) = !!(var1 <> 10)) goto yes;
+goto not;
 
 yes start
     var;
@@ -20,4 +20,10 @@ no start
     finish
 
 end;
+
+for var1 to var1 + 100 next
+start
+    var;
+    vars := "test for cycle";
+    finish
 finish

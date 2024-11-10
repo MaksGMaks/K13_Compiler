@@ -20,19 +20,16 @@ int main(int argc, char *argv[]) {
     switch (lexicalAnalysStatus)
     {
     case 0:
-        std::cout << "Done\n";
+        std::cout << "[INFO] Done\n";
         writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
         syntaxAnalysStatus = syntax.analyze(lexic.getLexems(), lexic.getUnknownLexems());
         switch (syntaxAnalysStatus)
         {
         case 0:
-            std::cout << "Syntax analysis done" << std::endl;
+            std::cout << "[INFO] Syntax analysis done" << std::endl;
             break;
         case -1:
-            std::cout << "Can't open file for errors" << std::endl;
-            break;
-        case -2:
-            std::cout << "Syntax errors found. Build failed" << std::endl;
+            std::cout << "[INFO] Syntax errors found. Build failed" << std::endl;
             break;
         default:
             break;

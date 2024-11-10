@@ -16,9 +16,7 @@ namespace k_13
 
         int analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknownLexems);
     private:
-        std::ofstream file;
         int errors = 0;
-        //std::map<int, std::vector<Lexem>> code;
         int position = 0;
         std::vector<Lexem> code;
 

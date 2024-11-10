@@ -47,7 +47,7 @@ namespace k_13 {
 
         file.get(ch);
 
-        std::cout << "[LexicalAnalyzer: Start reading file]" << std::endl;
+        std::cout << "[INFO] Start lexic analysis" << std::endl;
         while (1) {
             switch (state) {
                 case State::START:
