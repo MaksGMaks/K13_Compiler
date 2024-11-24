@@ -6,6 +6,8 @@
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
                  const std::vector<k_13::UnknownLexem> &unknownLexems);
 
+std::string findDistance(const int maxSize, const std::string &lexems);
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "Error: input path to file for compilation" << std::endl;
@@ -53,42 +55,53 @@ void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13:
     std::filesystem::path outputFile = std::filesystem::current_path() / "allLexems.txt";
     std::ofstream file(outputFile);
     if(file.is_open()) {
-        file << "|---------------------------------------------------------------------|\n";
-        file << "|                          Lexems table                               |\n";
-        file << "|---------------------------------------------------------------------|\n";
-        file << "| line number | lexem | value | lexem code | type of lexem |\n";
-        file << "|---------------------------------------------------------------------|\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|                                     Lexems table                                       |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|   line number  |     lexem     |     value     |  lexem code  |     type of lexem      |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
         for(auto lexem : lexems) {
-            file << "| " << lexem.line << " | " << lexem.value << " | " << lexem.constant << " | " << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " | " ;
+            file << "|\t" << lexem.line <<  findDistance(14, std::to_string(lexem.line)) << " |\t" << lexem.value << findDistance(10, lexem.value) << " |\t" << lexem.constant << "\t |\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " \t|\t" ;
             for(auto &enumToString : constants.enumToStringLexems) {
                 if(lexem.type == enumToString.first) {
-                    file << enumToString.second << " |\n";
+                    file << enumToString.second << findDistance(18, enumToString.second) << " |\n";
                     break;
                 }
             }
-            file << "|---------------------------------------------------------------------|\n";
+            file << "|----------------------------------------------------------------------------------------|\n";
         }
 
-        file << "\n|---------------------------------------------------------------------|\n";
-        file << "|                          Literals table                             |\n";
-        file << "|---------------------------------------------------------------------|\n";
-        file << "| literal id | value |\n";
-        file << "|---------------------------------------------------------------------|\n";
+        file << "\n|----------------------------------------------------------------------------------------\n";
+        file << "|                          Literals table\n";
+        file << "|----------------------------------------------------------------------------------------\n";
+        file << "|   literal id   | value \n";
+        file << "|----------------------------------------------------------------------------------------\n";
         for(auto literal : literals) {
-            file << "| " << literal.id << " | " << literal.value << " |\n";
-            file << "|---------------------------------------------------------------------|\n";
+            file << "|\t" << literal.id << findDistance(10, std::to_string(literal.id)) << " |\t" << literal.value << " \n";
+            file << "|----------------------------------------------------------------------------------------\n";
         }
 
-        file << "\n|---------------------------------------------------------------------|\n";
-        file << "|                      Unknown lexems table                           |\n";
-        file << "|---------------------------------------------------------------------|\n";
-        file << "| unknown lexem id | value |\n";
-        file << "|---------------------------------------------------------------------|\n";
+        file << "\n|----------------------------------------------------------------------------------------\n";
+        file << "|                      Unknown lexems table\n";
+        file << "|----------------------------------------------------------------------------------------\n";
+        file << "|   unknown id   | value \n";
+        file << "|----------------------------------------------------------------------------------------\n";
         for(auto unknownLexem : unknownLexems) {
-            file << "| " << unknownLexem.id << " | " << unknownLexem.value << " |\n";
-            file << "|---------------------------------------------------------------------|\n";
+            file << "|\t" << unknownLexem.id << findDistance(10, std::to_string(unknownLexem.id)) << " |\t" << unknownLexem.value << " \n";
+            file << "|----------------------------------------------------------------------------------------\n";
         }
 
         file.close();
     }
+}
+
+std::string findDistance(const int maxSize, const std::string &lexems) {
+    int length = maxSize - (lexems.length() - (lexems.length() % 8));
+    std::string distance = "";
+    int tabs = length / 8;
+    for(int i = 0; i < tabs; i++) {
+        distance += "\t";
+    }
+
+    return distance;
 }

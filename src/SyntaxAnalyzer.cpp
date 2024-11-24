@@ -22,6 +22,7 @@ namespace k_13
 
         program();
         if(errors > 0) {
+            std::cout << std::endl;
             return -1;
         }
         return 0;
@@ -137,8 +138,6 @@ namespace k_13
             case LexemType::IDENTIFIER:
                 if(code[position+1].type == LexemType::ASSIGN) {
                     assign_expression();
-                } else if(code[position+1].type == LexemType::START) {
-                    block_statement();
                 } else {
                     end_goto_expression();
                 }
@@ -148,11 +147,6 @@ namespace k_13
                 std::cerr << "\tSyntax error at line " << code[position].line << ": Unknown statement " << code[position].value << std::endl;
                 break;
         }
-    }
-
-    void SyntaxAnalyzer::block_statement() {
-        match(LexemType::IDENTIFIER);
-        compound_statement();
     }
 
     void SyntaxAnalyzer::end_goto_expression() {
@@ -170,21 +164,18 @@ namespace k_13
         }
     }
 
-    void SyntaxAnalyzer::goto_statement() {
-        match(LexemType::GOTO);
-        if(!match(LexemType::IDENTIFIER)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected identifier after 'goto' statement" << std::endl;
-            errors++;
-        }
-    }
-
     void SyntaxAnalyzer::if_expression() {
         match(LexemType::IF);
         if(!match(LexemType::LPAREN)) {
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected '(' before expression" << std::endl;
             errors++;
         }
-        logical_expression();
+        try {
+            conditional_expression();
+        } catch(const std::exception &e) {
+            std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+            errors++;
+        }
         if(!match(LexemType::RPAREN)) {
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
             errors++;
@@ -194,7 +185,13 @@ namespace k_13
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
             errors++;
         }
+        compound_statement();
         goto_expression();
+        if(!match(LexemType::SEMICOLON)) {
+            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            errors++;
+        }
+        end_goto_expression();
     }
 
     void SyntaxAnalyzer::for_expression() {
@@ -207,7 +204,12 @@ namespace k_13
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected 'to' keyword after identifier" << std::endl;
             errors++;
         }
-        arithmetic_expression();
+        try {
+            arithmetic_expression();
+        } catch(const std::exception &e) {
+            std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+            errors++;
+        }
         if(!match(LexemType::NEXT)) {
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected 'next' keyword after expression" << std::endl;
             errors++;
@@ -221,7 +223,23 @@ namespace k_13
             std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ':=' after identifier" << std::endl;
             errors++;
         }
-        arithmetic_expression();
+        int current_position = position;
+        try {
+            conditional_expression();
+        } catch(const std::exception &e) {
+            position = current_position;
+            try {
+                logical_expression();
+            } catch(const std::exception &e) {
+                position = current_position;
+                try {
+                    arithmetic_expression();
+                } catch(const std::exception &e) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                    errors++;
+                }
+            }
+        }
     }
 
     void SyntaxAnalyzer::get_expression() {
@@ -280,9 +298,6 @@ namespace k_13
             case LexemType::NUMBER:
                 position++;
                 break;
-            case LexemType::BOOL:
-                position++;
-                break;
             case LexemType::TRUE:
                 position++;
                 break;
@@ -293,28 +308,106 @@ namespace k_13
                 position++;
                 break;
             case LexemType::LPAREN:
+                position++;    
+                try {
+                    arithmetic_expression();
+                } catch(const std::exception &e) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                    errors++;
+                }
+                if(!match(LexemType::RPAREN)) {
+                    throw std::exception();
+                    std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
+                    errors++;
+                }
+                break;
+            default:
+                throw std::exception();
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Expected factor" << std::endl;
+                errors++;
+                break;
+        }
+    }
+
+    void SyntaxAnalyzer::logical_expression() {
+        logical_term();
+        while(code[position].type == LexemType::OR) {
+            position++;
+            logical_term();
+        }
+    }
+
+    void SyntaxAnalyzer::logical_term() {
+        logical_factor();
+        while(code[position].type == LexemType::AND) {
+            position++;
+            logical_factor();
+        }
+    }
+
+    void SyntaxAnalyzer::logical_factor() {
+        int current_position = position;
+        switch(code[position].type) {
+            
+            case LexemType::NOT:
                 position++;
-                arithmetic_expression();
+                if(!match(LexemType::LPAREN)) {
+                    throw std::exception();
+                    std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected '(' before expression" << std::endl;
+                    errors++;
+                }
+                try {
+                    logical_expression();
+                } catch(const std::exception &e) {
+                    position = current_position;
+                    arithmetic_expression();
+                }
+                if(!match(LexemType::RPAREN)) {
+                    throw std::exception();
+                    std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
+                    errors++;
+                }
+                break;
+            case LexemType::LPAREN:
+                position++;
+                try {
+                    logical_expression();
+                } catch(const std::exception &e) {
+                    position = current_position;
+                    arithmetic_expression();
+                }
                 if(!match(LexemType::RPAREN)) {
                     std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
                     errors++;
                 }
                 break;
             default:
-                std::cerr << "\tSyntax error at line " << code[position].line << ": Expected factor" << std::endl;
+                try {
+                    arithmetic_expression();
+                } catch(const std::exception &e) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Expected factor" << std::endl;
+                    errors++;
+                }
                 break;
-        }
+        }        
     }
 
-    void SyntaxAnalyzer::logical_expression() {
+    void SyntaxAnalyzer::conditional_expression() {
         if(code[position].type == LexemType::NOT) {
             position++;
             if(!match(LexemType::LPAREN)) {
+                throw std::exception();
                 std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected '(' before expression" << std::endl;
                 errors++;
             }
-            logical_expression();
+            try {
+                conditional_expression();
+            } catch(const std::exception &e) {
+                std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                errors++;
+            }
             if(!match(LexemType::RPAREN)) {
+                throw std::exception();
                 std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
                 errors++;
             }
@@ -328,14 +421,26 @@ namespace k_13
             } else {
                 if(code[position].type == LexemType::NOT) {
                     position++;
-                    logical_expression();
+                    try {
+                        conditional_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                        errors++;
+                    }
                 } else {
                     if(!match(LexemType::LPAREN)) {
+                        throw std::exception();
                         std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected '(' before expression" << std::endl;
                         errors++;
                     }
-                    logical_expression();
+                    try {
+                        conditional_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                        errors++;
+                    }
                     if(!match(LexemType::RPAREN)) {
+                        throw std::exception();
                         std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
                         errors++;
                     }
@@ -347,11 +452,18 @@ namespace k_13
             if(code[position].type == LexemType::NOT) {
                 position++;
                 if(!match(LexemType::LPAREN)) {
+                    throw std::exception();
                     std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected '(' before expression" << std::endl;
                     errors++;
                 }
-                logical_expression();
+                try {
+                    conditional_expression();
+                } catch(const std::exception &e) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                    errors++;
+                }
                 if(!match(LexemType::RPAREN)) {
+                    throw std::exception();
                     std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
                     errors++;
                 }
@@ -370,13 +482,19 @@ namespace k_13
     }
 
     void SyntaxAnalyzer::compare_expression() {
+        int current_position = position;
         switch(code[position].type) {
             case LexemType::EQUAL:
                 position++;
                 if(code[position].type == LexemType::TRUE || code[position].type == LexemType::FALSE) {
                     position++;
                 } else {
-                    logical_expression();
+                    try {
+                        conditional_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                        errors++;
+                    }
                 }
                 break;
             case LexemType::NEQUAL:
@@ -384,23 +502,55 @@ namespace k_13
                 if(code[position].type == LexemType::TRUE || code[position].type == LexemType::FALSE) {
                     position++;
                 } else {
-                    logical_expression();
+                    try {
+                        conditional_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                        errors++;
+                    }
                 }
                 break;
             case LexemType::LPAREN:
                 position++;
-                logical_expression();
+                try {
+                    conditional_expression();
+                } catch(const std::exception &e) {
+                    std::cerr << "\tSyntax error at line " << code[position].line << ": Expected expression" << std::endl;
+                    errors++;
+                }
                 if(!match(LexemType::RPAREN)) {
+                    throw std::exception();
                     std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected ')' after expression" << std::endl;
                     errors++;
                 }
                 break;
             default:
-                arithmetic_expression();
+                try {
+                    logical_expression();
+                } catch(const std::exception &e) {
+                    position = current_position;
+                    try {
+                        arithmetic_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected comparable value" << std::endl;
+                        errors++;
+                    }
+                }
                 if(!(match(LexemType::EQUAL) || match(LexemType::NEQUAL) || match(LexemType::LESS) || match(LexemType::GREATER))) {
+                    throw std::exception();
                     std::cerr << "\tSyntax error at line " << code[position-1].line << ": Expected comparison operator" << std::endl;
                 }
-                arithmetic_expression();
+                try {
+                    logical_expression();
+                } catch(const std::exception &e) {
+                    position = current_position;
+                    try {
+                        arithmetic_expression();
+                    } catch(const std::exception &e) {
+                        std::cerr << "\tSyntax error at line " << code[position].line << ": Expected comparable value" << std::endl;
+                        errors++;
+                    }
+                }
                 break;
         }
     }
