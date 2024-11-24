@@ -1,22 +1,21 @@
 program test;
 start
-var int16_t var1, bool varb, string vars;
+var int16_t , bool varb, string vars;
 var1 := 10 && (10+2) && !!(10 + 2);
-varb:= (var1 le 10) && (var1 ge 5);
+varb:= (var1 le 10) && (var1  5);
 get(var1);
 vars:= "";
-if((!!(var1 = (10 && 1 || varb))) = !!(var1 <> 10)) goto yes;
+if((!!(var1 = (10 && 1 || varb))) = !!(var1  10)) goto yes;
     start
     var;
     vars := "Var1 isn't equal 10";
     finish
 goto end;
 
-yes;
-vars := "Var1 is equal 10";
+
 goto end;
 
-end;
+
 
 for var1 to var1 + 100 next
 start

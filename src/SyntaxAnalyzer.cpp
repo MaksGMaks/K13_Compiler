@@ -22,7 +22,6 @@ namespace k_13
 
         program();
         if(errors > 0) {
-            std::cout << std::endl;
             return -1;
         }
         return 0;
@@ -74,12 +73,14 @@ namespace k_13
             statement();
             if(!(code[position-1].type == LexemType::FINISH)) {    
                 if(!match(LexemType::SEMICOLON)) {
-                    std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+                    (position < code.size() - 1)
+                    ? std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl
+                    : std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';'" << std::endl;
                     errors++;
                 }
             }
         }
-        while(code[position].type != LexemType::FINISH && position < code.size());
+        while(code[position].type != LexemType::FINISH && position < code.size() - 1);
     }
 
     void SyntaxAnalyzer::variable_declaration() {
@@ -91,7 +92,9 @@ namespace k_13
             variable_list();
 
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            (position < code.size() - 1) 
+            ? std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl
+            : std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';'" << std::endl;
             errors++;
         }
     }
@@ -182,13 +185,17 @@ namespace k_13
         }
         goto_expression();
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            (position < code.size() - 1) 
+            ? std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl
+            : std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';'" << std::endl;
             errors++;
         }
         compound_statement();
         goto_expression();
         if(!match(LexemType::SEMICOLON)) {
-            std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl;
+            (position < code.size() - 1) 
+            ? std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';' before statement " << code[position].value << std::endl
+            : std::cerr << "\tSyntax error at line " << code[position-1].line << ": Missing ';'" << std::endl;
             errors++;
         }
         end_goto_expression();
