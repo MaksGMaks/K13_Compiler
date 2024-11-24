@@ -33,7 +33,6 @@ namespace k_13
         void statement();
 
         void end_goto_expression();
-        void goto_statement();
         void if_expression();
         void goto_expression();
         void for_expression();
@@ -45,6 +44,10 @@ namespace k_13
         void factor();
 
         void logical_expression();
+        void logical_term();
+        void logical_factor();
+
+        void conditional_expression();
         void and_expression();
         void compare_expression();
 
