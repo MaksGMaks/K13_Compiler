@@ -24,7 +24,6 @@ namespace k_13
 
         void program_declaration();
         void compound_statement();
-        void block_statement();
         void program_body();
 
         void variable_declaration();
@@ -44,12 +43,10 @@ namespace k_13
         void factor();
 
         void logical_expression();
-        void logical_term();
-        void logical_factor();
-
-        void conditional_expression();
+        void or_expression();
         void and_expression();
-        void compare_expression();
+
+        bool not_expression();
 
         void get_expression();
         void put_expression();
