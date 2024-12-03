@@ -8,11 +8,11 @@ var1 := 10 && (varb);                 $$ 29
 varb:= (var1 le 10) && (var1 ge 5);
 get(var1);
 vars:= "";
-$$if(var1) goto yes;
-$$    start
-$$    var;
-$$    finish
-$$goto end;
+if(var1 + 10) goto yes;
+    start
+    var;
+    finish
+goto end;
 
 yes;
 vars := "Var1 is equal 10";
@@ -20,13 +20,13 @@ goto end;
 
 end;
 
-for var1 1 to var1 + 100 next
+for var1 (1) to (var1 + 100) next
 start
     var;
     vars := "test for cycle";
     finish
 put(vars);
-put((10 + 4)); $$ make easeare
-put((70 && 2));
+put(10 + 4); $$ make easeare
+put(70 && 2);
 put("test output");
 finish
