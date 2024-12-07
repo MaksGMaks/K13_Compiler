@@ -12,10 +12,9 @@ int k_13::SyntaxAnalyzer2::analyze(const std::vector<Lexem> &lexems, const std::
     position = 0;
 
     program();
-    std::cout << "End of analyzing" << std::endl;
     if(errorMessages.size() > 0) {
         for(auto message : errorMessages) {
-            std::cerr << message;
+            std::cerr << message << std::endl;
         }
         return -1;
     }
@@ -33,7 +32,6 @@ bool k_13::SyntaxAnalyzer2::match(const LexemType expectedType) {
 void k_13::SyntaxAnalyzer2::program() {
     program_declaration();
     program_body();
-    std::cout << "End of program" << std::endl;
 }
 
 void k_13::SyntaxAnalyzer2::program_declaration() {
@@ -51,34 +49,24 @@ void k_13::SyntaxAnalyzer2::program_declaration() {
 }
 
 void k_13::SyntaxAnalyzer2::compound_statement() {
-    std::cout << "Compound statement" << std::endl;
     if(!match(LexemType::START)) {
         errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'start' keyword before compound statement");
     }
     variable_declaration();
     program_body();
-    // std::cout << "Position: " << position << "\t Line:" << code[position].line << std::endl;
-    // std::cout << "Value: " << code[position].value << std::endl;
     if(!match(LexemType::FINISH)) {
         errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'finish' keyword after compound statement");
     }
-    std::cout << "Reached finish" << std::endl;
 }
 
 void k_13::SyntaxAnalyzer2::program_body() {
-    std::cout << "Program body" << std::endl;
     do {
-        std::cout << "Position: " << position << "\t Line:" << code[position].line << std::endl;
-        std::cout << "Value: " << code[position].value << std::endl;
         statement();
-        // std::cout << "Position: " << position << "\t Line:" << code[position].line << std::endl;
-        // std::cout << "Value: " << code[position].value << std::endl;
         if(position >= code.size()) {
             break;
         }
     }
     while(code[position].type != LexemType::FINISH && position < code.size());
-    std::cout << "end of program body" << std::endl;
 }
 
 void k_13::SyntaxAnalyzer2::statement() {
@@ -132,18 +120,18 @@ void k_13::SyntaxAnalyzer2::statement() {
             break;
         case LexemType::UNKNOWN:
             position++;
-            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + unknownLexems[std::stoi(code[position].value)].value + "\n");
+            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + unknownLexems[std::stoi(code[position].value)].value);
             break;
         default:
             position++;
-            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + code[position].value + "\n");
+            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + code[position].value);
             break;
     }
 }
 
 void k_13::SyntaxAnalyzer2::variable_declaration() {
     if(!match(LexemType::VAR)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'var' keyword before variable segment" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'var' keyword before variable segment");
     }
     if(code[position].type == LexemType::INT || code[position].type == LexemType::BOOL || code[position].type == LexemType::STRING)
         variable_list();
@@ -158,7 +146,7 @@ void k_13::SyntaxAnalyzer2::variable_declaration() {
 void k_13::SyntaxAnalyzer2::variable_list() {
     position++;
     if(!match(LexemType::IDENTIFIER)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after variable type" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after variable type");
     }
     while(code[position].type == LexemType::COMMA) {
         position++;
@@ -166,10 +154,10 @@ void k_13::SyntaxAnalyzer2::variable_list() {
             position++;
         } else {
             if(!(match(LexemType::INT) || match(LexemType::BOOL) || match(LexemType::STRING))) {
-                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected variable type before identifier" + "\n");
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected variable type before identifier");
             }
             if(!match(LexemType::IDENTIFIER)) {
-                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after variable type" + "\n");
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after variable type");
             }
         }
     }
@@ -178,20 +166,20 @@ void k_13::SyntaxAnalyzer2::variable_list() {
 void k_13::SyntaxAnalyzer2::get_expression() {
     position++;
     if(!match(LexemType::LPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before identifier" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before identifier");
     }
     if(!match(LexemType::IDENTIFIER)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'get' statement" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'get' statement");
     }
     if(!match(LexemType::RPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after identifier" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after identifier");
     }
 }
 
 void k_13::SyntaxAnalyzer2::put_expression() {
     position++;
     if(!match(LexemType::LPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before identifier" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before identifier");
     }
     if(!match(LexemType::IDENTIFIER)) {
         if(code[position].type == LexemType::STRING_LITERAL && code[position+1].type == LexemType::RPAREN) {
@@ -199,115 +187,69 @@ void k_13::SyntaxAnalyzer2::put_expression() {
         } else {
             int current_position = position;
             subErrors.clear();
-            if(!logical_expression() && code[position].type != LexemType::RPAREN) {
-                int subErrorsSize = subErrors.size();
-                position = current_position;
-                if(!arithmetic_expression() && code[position].type != LexemType::RPAREN) {
-                    errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression to output."
-                        "\n\tPossible problem for logical:" + "\n");
-                    for(int i = 0; i < subErrorsSize; i++) {
-                        errorMessages.push_back("\t" + subErrors[i]);
-                    }
-                    errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-                    for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                        errorMessages.push_back("\t" + subErrors[i]);
-                    }
-                }
-            }
+            log_arith(LexemType::RPAREN, current_position);
         }
     }
     if(!match(LexemType::RPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
     }
 }
 
 void k_13::SyntaxAnalyzer2::assign_expression() {
     position++;
     if(!match(LexemType::ASSIGN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ':=' after identifier" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ':=' after identifier");
     }
     int current_position = position;
     subErrors.clear();
-    if(!logical_expression() && code[position].type != LexemType::SEMICOLON) {
-        int subErrorsSize = subErrors.size();
-        position = current_position;
-        if(!arithmetic_expression() && code[position].type != LexemType::SEMICOLON) {
-            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression to assign."
-                "\n\tPossible problem for logical:" + "\n");
-            for(int i = 0; i < subErrorsSize; i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-            errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-            for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-        }
-    }
+    log_arith(LexemType::SEMICOLON, current_position);
 }
 
 void k_13::SyntaxAnalyzer2::goto_expression() {
     position++;
     if(!match(LexemType::IDENTIFIER)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'goto' statement" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'goto' statement");
     }
 }
 
 void k_13::SyntaxAnalyzer2::end_goto_expression() {
     if(!match(LexemType::IDENTIFIER)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'end' statement" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'end' statement");
     }
 }
 
 void k_13::SyntaxAnalyzer2::if_expression() {
     position++;
     if(!match(LexemType::LPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before condition expression" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before condition expression");
     }
-    if(code[position].type == LexemType::IDENTIFIER && code[position+1].type != LexemType::RPAREN) {
-        int current_position = position;
-        subErrors.clear();
-        if(!logical_expression() && code[position].type != LexemType::RPAREN) {
-            int subErrorsSize = subErrors.size();
-            position = current_position;
-            if(!arithmetic_expression() && code[position].type != LexemType::RPAREN) {
-                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression for condition."
-                    "\n\tPossible problem for logical:" + "\n");
-                for(int i = 0; i < subErrorsSize; i++) {
-                    errorMessages.push_back("\t" + subErrors[i]);
-                }
-                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-                for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                    errorMessages.push_back("\t" + subErrors[i]);
-                }
-            }
-        }
-    } else if(!match(LexemType::IDENTIFIER)) {
-        int current_position = position;
-        subErrors.clear();
-        if(!logical_expression() && code[position].type != LexemType::RPAREN) {
-            int subErrorsSize = subErrors.size();
-            position = current_position;
-            if(!arithmetic_expression() && code[position].type != LexemType::RPAREN) {
-                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression for condition."
-                    "\n\tPossible problem for logical:" + "\n");
-                for(int i = 0; i < subErrorsSize; i++) {
-                    errorMessages.push_back("\t" + subErrors[i]);
-                }
-                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-                for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                    errorMessages.push_back("\t" + subErrors[i]);
-                }
-            }
-        }
-    }
+    int current_position = position;
+    subErrors.clear();
+    log_arith(LexemType::RPAREN, current_position);
     if(!match(LexemType::RPAREN)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after condition expression" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after condition expression");
     }
     goto_expression();
     if(!match(LexemType::SEMICOLON)) {
         (position < code.size()) 
         ? errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
         : errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' after statement " + code[position - 1].value);
+    }
+    std::string ifErrors = "";
+    if(code[position].type != LexemType::START) {
+        ifErrors += "\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statements before 'start' keyword: ";
+    }
+    while (code[position].type != LexemType::START && position < code.size() - 1) {
+        ifErrors += code[position].value + " "; 
+        position++;
+    }
+    if(position == code.size() - 1) {
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'start' keyword after 'if' statement");
+        return;
+    }
+    if(ifErrors != "") {
+        ifErrors += "\n";
+        errorMessages.push_back(ifErrors);
     }
     compound_statement();
     goto_expression();
@@ -327,55 +269,40 @@ void k_13::SyntaxAnalyzer2::if_expression() {
 void k_13::SyntaxAnalyzer2::for_expression() {
     position++;
     if(!match(LexemType::IDENTIFIER)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'for' statement" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected identifier after 'for' statement");
     }
     int current_position = position;
     subErrors.clear();
-    if(!logical_expression() && code[position].type != LexemType::TO) {
-        int subErrorsSize = subErrors.size();
-        position = current_position;
-        if(!arithmetic_expression() && code[position].type != LexemType::TO) {
-            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression for condition."
-                "\n\tPossible problem for logical:" + "\n");
-            for(int i = 0; i < subErrorsSize; i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-            errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-            for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-        }
-    }
+    log_arith(LexemType::TO, current_position);
     if(!match(LexemType::TO)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'to' keyword after identifier" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'to' keyword after identifier");
     }
     current_position = position;
     subErrors.clear();
-    if(!logical_expression() && code[position].type != LexemType::NEXT) {
-        int subErrorsSize = subErrors.size();
-        position = current_position;
-        if(!arithmetic_expression() && code[position].type != LexemType::NEXT) {
-            errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression for condition."
-                "\n\tPossible problem for logical:" + "\n");
-            for(int i = 0; i < subErrorsSize; i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-            errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
-            for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                errorMessages.push_back("\t" + subErrors[i]);
-            }
-        }
-    }
+    log_arith(LexemType::NEXT, current_position);
     if(!match(LexemType::NEXT)) {
-        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'next' keyword after condition expression" + "\n");
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'next' keyword after condition expression");
+    }
+    std::string ifErrors = "";
+    if(code[position].type != LexemType::START) {
+        ifErrors += "\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statements before 'start' keyword: ";
+    }
+    while (code[position].type != LexemType::START && position < code.size() - 1) {
+        ifErrors += code[position].value + " "; 
+        position++;
+    }
+    if(position == code.size() - 1) {
+        errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'start' keyword after 'if' statement");
+        return;
+    }
+    if(ifErrors != "") {
+        ifErrors += "\n";
+        errorMessages.push_back(ifErrors);
     }
     compound_statement();
 }
 
 bool k_13::SyntaxAnalyzer2::arithmetic_expression() {
-    // std::cout << "Arithmetic expression" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     bool result = term();
     while(code[position].type == LexemType::ADD || code[position].type == LexemType::SUB) {
         position++;
@@ -385,9 +312,6 @@ bool k_13::SyntaxAnalyzer2::arithmetic_expression() {
 }
 
 bool k_13::SyntaxAnalyzer2::term() {
-    // std::cout << "Term" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     bool result = factor();
     while(code[position].type == LexemType::MUL || code[position].type == LexemType::DIV || code[position].type == LexemType::MOD) {
         position++;
@@ -397,9 +321,6 @@ bool k_13::SyntaxAnalyzer2::term() {
 }
 
 bool k_13::SyntaxAnalyzer2::factor() {
-    // std::cout << "Factor" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     bool result = true;
     switch(code[position].type) {
         case LexemType::IDENTIFIER:
@@ -409,22 +330,27 @@ bool k_13::SyntaxAnalyzer2::factor() {
         case LexemType::STRING_LITERAL:
             position++;
             break;
+        case LexemType::UNKNOWN:
+            position++;
+            result = false;
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + unknownLexems[std::stoi(code[position].value)].value);
+        break;
         case LexemType::LPAREN:
             position++;    
             if(!arithmetic_expression()) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression");
             }
             if(!match(LexemType::RPAREN)) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
                 errors++;
             }
             break;
         default:
             position++;
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected factor" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected factor");
             errors++;
             break;
     }
@@ -432,28 +358,25 @@ bool k_13::SyntaxAnalyzer2::factor() {
 }
 
 bool k_13::SyntaxAnalyzer2::logical_expression() {
-    // std::cout << "Logical expression" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     int current_position = position;
     bool result = true;
     if(code[position].type == LexemType::NOT) {
         position++;
         if(!match(LexemType::LPAREN)) {
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression");
         }
         current_position = position;
         if(!logical_expression()) {
             position = current_position;
             if(!arithmetic_expression()) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression");
             }
         }
         if(!match(LexemType::RPAREN)) {
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
         }
     } else {
         result = or_expression();
@@ -461,26 +384,23 @@ bool k_13::SyntaxAnalyzer2::logical_expression() {
 
     while(code[position].type == LexemType::OR) {
         position++;
-        // std::cout << "Logical expression" << std::endl;
-        // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-        // std::cout << code[position].value << std::endl;
         if(code[position].type == LexemType::NOT) {
             position++;
             if(!match(LexemType::LPAREN)) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression");
             }
             current_position = position;
             if(!logical_expression()) {
                 position = current_position;
                 if(!arithmetic_expression()) {
                     result = false;
-                    subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression" + "\n");
+                    subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression");
                 }
             }
             if(!match(LexemType::RPAREN)) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
             }
         } else {
             result = or_expression();
@@ -490,41 +410,33 @@ bool k_13::SyntaxAnalyzer2::logical_expression() {
 }
 
 bool k_13::SyntaxAnalyzer2::or_expression() {
-    // std::cout << "OR expression" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     bool result = and_expression();
     while(code[position].type == LexemType::AND) {
         position++;
-        // std::cout << "OR expression" << std::endl;
-        // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-        // std::cout << code[position].value << std::endl;
         result = and_expression();
     }
     return result;
 }
 
 bool k_13::SyntaxAnalyzer2::and_expression() {
-    // std::cout << "AND expression" << std::endl;
-    // std::cout << "Position: " << position << "\t Line:" << std::to_string(code[position].line) << std::endl;
-    // std::cout << code[position].value << std::endl;
     bool result = true;
     int current_position = position;
     switch (code[position].type) {
     case LexemType::LPAREN:
         position++;
         current_position = position;
-        if(!logical_expression()) {
-            position = current_position;
-            if(!arithmetic_expression()) {
-                result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression" + "\n");
-            }
-        }
+        result = log_arith(LexemType::RPAREN, current_position);
+        // if(!logical_expression()) {
+        //     position = current_position;
+        //     if(!arithmetic_expression()) {
+        //         result = false;
+        //         subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression");
+        //     }
+        // }
         
         if(!match(LexemType::RPAREN)) {
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
         }
         break;
     case LexemType::IDENTIFIER:
@@ -534,28 +446,27 @@ bool k_13::SyntaxAnalyzer2::and_expression() {
     case LexemType::STRING_LITERAL:
         position++;
         break;
+    case LexemType::UNKNOWN:
+        position++;
+        result = false;
+        subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statement " + unknownLexems[std::stoi(code[position].value)].value);
+        break;
     case LexemType::NOT:
         position++;
         if(!match(LexemType::LPAREN)) {
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected '(' before expression");
         }
         current_position = position;
-        if(!logical_expression()) {
-            position = current_position;
-            if(!arithmetic_expression()) {
-                result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression" + "\n");
-            }
-        }
+        result = log_arith(LexemType::RPAREN, current_position);
         if(!match(LexemType::RPAREN)) {
             result = false;
-            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression" + "\n");
+            subErrors.push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected ')' after expression");
         }
     default:
         position++;
         result = false;
-        subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected factor" + "\n");
+        subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected factor");
         break;
     }
     if(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL || code[position].type == LexemType::LESS || code[position].type == LexemType::GREATER) {
@@ -565,7 +476,121 @@ bool k_13::SyntaxAnalyzer2::and_expression() {
             position = current_position;
             if(!arithmetic_expression()) {
                 result = false;
-                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression" + "\n");
+                subErrors.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical or arithmatical expression");
+            }
+        }
+    }
+    return result;
+}
+
+bool k_13::SyntaxAnalyzer2::log_arith(const LexemType expectedType, const int current_position) {
+    bool result = true;
+    if(code[position].type == LexemType::IDENTIFIER && code[position+1].type != expectedType) {
+        if(!logical_expression()) {
+            int subErrorsSize = subErrors.size();
+            position = current_position;
+            if(!arithmetic_expression()) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            } else if(code[position].type != expectedType) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            }
+        } else if(code[position].type != expectedType) {
+            int subErrorsSize = subErrors.size();
+            position = current_position;
+            if(!arithmetic_expression()) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            } else if(code[position].type != expectedType) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            }
+        }
+    } else if(!match(LexemType::IDENTIFIER)) {
+        if(!logical_expression()) {
+            int subErrorsSize = subErrors.size();
+            position = current_position;
+            if(!arithmetic_expression()) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            } else if(code[position].type != expectedType) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            }
+        } else if(code[position].type != expectedType) {
+            int subErrorsSize = subErrors.size();
+            position = current_position;
+            if(!arithmetic_expression()) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+            } else if(code[position].type != expectedType) {
+                result = false;
+                errorMessages.push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected any expression."
+                    "\n\tPossible problem for logical:");
+                for(int i = 0; i < subErrorsSize; i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
+                errorMessages.push_back("\n\t Possible problem for arithmetic:\n");
+                for(int i = subErrorsSize; i < subErrors.size(); i++) {
+                    errorMessages.push_back("\t" + subErrors[i]);
+                }
             }
         }
     }

@@ -53,4 +53,5 @@ private:
     bool and_expression();
 
     bool match(const LexemType expectedType);
+    bool log_arith(const LexemType expectedType, const int current_position);
 };};

@@ -1,14 +1,14 @@
-program test;                           $$ 2
-start                                   $$ 3
-var int16_t var1,                       $$ 7
-    bool varb,                          $$ 10
-    string vars;                        $$ 13
-var1 := (varb);                         $$ 19
-var1 := 10 && (varb);                 $$ 29
-varb:= (var1 le 10) && (var1 ge 5);
+program test;
+start
+var int16_t var1,
+    bool varb,
+    string vars;
+var1 := varb;
+var1 := 10 && ("varb" && Ture) || (10 + 1) && (var1 + varb);
+varb:= (false le ("varb" && false)) && (var1 ge 5);
 get(var1);
 vars:= "";
-if(var1 + 10) goto yes;
+if(varb || (var1 + 10)) goto yes;
     start
     var;
     finish
@@ -20,13 +20,13 @@ goto end;
 
 end;
 
-for var1 (1) to (var1 + 100) next
+for var1 1 to (var1 + 100) next
 start
     var;
     vars := "test for cycle";
     finish
 put(vars);
-put(10 + 4); $$ make easeare
+put(10 + 4);
 put(70 && 2);
 put("test output");
 finish
