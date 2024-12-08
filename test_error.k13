@@ -1,26 +1,30 @@
 program test;
 start
-var int16_t , bool varb, string vars;
-var1 := 10 && (10+2) && !!(10 + 2);
-varb:= (var1 le 10) && (var1  5);
+var int16_t var1,
+    bool varb,
+    string vars;
+var1 := varb;
+var1 := 10 && ("varb" && true) || (10 + 1) && (var1  varb)
+varb:= (false + 2 le ("varb" && false)) && (var1 ge 2 + 2);
 get(var1);
 vars:= "";
-if((!!(var1 = (10 && 1 || varb))) = !!(var1  10)) goto yes;
-    start
-    var;
-    vars := "Var1 isn't equal 10";
-    finish
-goto end;
-
+if(varb || var1 + 10) goto yes;
 
 goto end;
 
+yes;
+vars := "Var1 is equal 10";
+goto end;
 
+end;
 
-for var1 to var1 + 100 next
+for var1 1 to (var1 + 100) next
 start
     var;
     vars := "test for cycle";
-    finish
-put(vars);
 finish
+    
+put(vars);
+put(10 + 4);
+put(70 && 2);
+put("test output");
