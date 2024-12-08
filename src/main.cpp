@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     }
     std::string path = argv[1];
     k_13::LexicalAnalyzer lexic;
-    k_13::SyntaxAnalyzer2 syntax;
+    k_13::SyntaxAnalyzer syntax;
     
     int lexicalAnalysStatus = lexic.readFromFile(path);
     int syntaxAnalysStatus;

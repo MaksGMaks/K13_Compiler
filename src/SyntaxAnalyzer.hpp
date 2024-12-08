@@ -4,53 +4,55 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <list>
 
 #include "constants.hpp"
 
-namespace k_13
-{
-    class SyntaxAnalyzer {
-    public:
-        SyntaxAnalyzer();
-        ~SyntaxAnalyzer() = default;
+namespace k_13 {
+class SyntaxAnalyzer {
+public:
+    SyntaxAnalyzer();
+    ~SyntaxAnalyzer() = default;
 
-        int analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknownLexems);
-    private:
-        int errors = 0;
-        int position = 0;
-        std::vector<Lexem> code;
+    int analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknowns);
+private:
+    int errors = 0;
+    int position = 0;
+    std::vector<Lexem> code;
+    std::vector<UnknownLexem> unknownLexems;
 
-        void program();
+    std::vector<std::string> subErrors;
+    std::map<int, std::vector<std::string>> errorMessages;
 
-        void program_declaration();
-        void compound_statement();
-        void program_body();
+    void program();
 
-        void variable_declaration();
-        void variable_list();
+    void program_declaration();
+    void compound_statement();
+    void program_body();
 
-        void statement();
+    void variable_declaration();
+    void variable_list();
 
-        void end_goto_expression();
-        void if_expression();
-        void goto_expression();
-        void for_expression();
-        
-        void assign_expression();
+    void statement();
 
-        void arithmetic_expression();
-        void term();
-        void factor();
+    void goto_expression();
+    void end_goto_expression();
+    void if_expression();
+    void for_expression();
+    
+    void get_expression();
+    void put_expression();
 
-        void logical_expression();
-        void or_expression();
-        void and_expression();
+    void assign_expression();
 
-        bool not_expression();
+    bool arithmetic_expression();
+    bool term();
+    bool factor();
 
-        void get_expression();
-        void put_expression();
-        
-        bool match(const LexemType expectedType);
-    };
-};
+    bool logical_expression();
+    bool or_expression();
+    bool and_expression();
+
+    bool match(const LexemType expectedType);
+    bool log_arith(const LexemType expectedType, const int current_position);
+};};
