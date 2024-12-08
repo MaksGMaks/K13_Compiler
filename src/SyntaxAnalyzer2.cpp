@@ -426,6 +426,10 @@ bool k_13::SyntaxAnalyzer2::and_expression() {
     case LexemType::FALSE:
     case LexemType::STRING_LITERAL:
         position++;
+        if(code[position].type == LexemType::ADD || code[position].type == LexemType::SUB || code[position].type == LexemType::MUL || code[position].type == LexemType::DIV || code[position].type == LexemType::MOD) {
+            position++;
+            result = term();
+        }
         break;
     case LexemType::UNKNOWN:
         result = false;
@@ -469,6 +473,10 @@ bool k_13::SyntaxAnalyzer2::and_expression() {
         case LexemType::FALSE:
         case LexemType::STRING_LITERAL:
             position++;
+            if(code[position].type == LexemType::ADD || code[position].type == LexemType::SUB || code[position].type == LexemType::MUL || code[position].type == LexemType::DIV || code[position].type == LexemType::MOD) {
+                position++;
+                result = term();
+            }
             break;
         case LexemType::UNKNOWN:
             result = false;

@@ -5,7 +5,7 @@ var int16_t var1,
     string vars;
 var1 := varb;
 var1 := 10 && ("varb" && true) || (10 + 1) && (var1 + varb);
-varb:= (false le ("varb" && false)) && (var1 ge 2);
+varb:= (false + 2 le ("varb" && false)) && (var1 ge 2 + 2);
 get(var1);
 vars:= "";
 if(varb || (var1 + 10)) goto yes;
