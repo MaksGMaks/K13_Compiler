@@ -20,11 +20,10 @@ goto end;
 
 end;
 
-for var1 1 to (var1 + 100) next
-start
-    var;
+for var1 := 1 to (var1 + 100) 
     vars := "test for cycle";
-    finish
+next var1;
+
 put(vars);
 put(10 + 4);
 put(70 && 2);

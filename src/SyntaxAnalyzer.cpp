@@ -104,6 +104,11 @@ void k_13::SyntaxAnalyzer::statement() {
             break;
         case LexemType::FOR:
             for_expression();
+            if(!match(LexemType::SEMICOLON)) {
+                (position < code.size()) 
+                ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
+                : errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' after statement " + code[position - 1].value);
+            }
             break;
         case LexemType::IDENTIFIER:
             if(code[position+1].type == LexemType::ASSIGN) {
@@ -240,15 +245,16 @@ void k_13::SyntaxAnalyzer::if_expression() {
     }
     std::string ifErrors = "";
     int errorLine = code[position].line;
+    std::string startLine = std::to_string(code[position-1].line);
     if(code[position].type != LexemType::START) {
-        ifErrors += "\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statements before 'start' keyword: ";
+        ifErrors += "\tSyntax error at line " + startLine + ": Unknown statements before 'start' keyword: ";
     }
     while (code[position].type != LexemType::START && position < code.size() - 1) {
         ifErrors += code[position].value + " "; 
         position++;
     }
     if(position == code.size() - 1) {
-        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'start' keyword after 'if' statement");
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + startLine + ": Expected 'start' keyword after 'if' statement");
         return;
     }
     if(ifErrors != "") {
@@ -275,36 +281,31 @@ void k_13::SyntaxAnalyzer::for_expression() {
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'for' statement");
     }
-    int current_position = position;
-    subErrors.clear();
-    log_arith(LexemType::TO, current_position);
+    if(!match(LexemType::ASSIGN)) {
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ':=' after identifier");
+    }
+    if(!arithmetic_expression()) {
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected arithmetic expression after ':=' statement");
+    }
     if(!match(LexemType::TO)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'to' keyword after identifier");
     }
-    current_position = position;
-    subErrors.clear();
-    log_arith(LexemType::NEXT, current_position);
+    if(!arithmetic_expression()) {
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected arithmetic expression after 'to' statement");
+    }
+    do {
+        statement();
+        if(position >= code.size()) {
+            break;
+        }
+    }
+    while(code[position].type != LexemType::NEXT && position < code.size());
     if(!match(LexemType::NEXT)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'next' keyword after condition expression");
     }
-    std::string ifErrors = "";
-    int errorLine = code[position].line;
-    if(code[position].type != LexemType::START) {
-        ifErrors += "\tSyntax error at line " + std::to_string(code[position].line) + ": Unknown statements before 'start' keyword: ";
+    if(!match(LexemType::IDENTIFIER)) {
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'next' statement");
     }
-    while (code[position].type != LexemType::START && position < code.size() - 1) {
-        ifErrors += code[position].value + " "; 
-        position++;
-    }
-    if(position == code.size() - 1) {
-        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'start' keyword after 'if' statement");
-        return;
-    }
-    if(ifErrors != "") {
-        ifErrors += "\n";
-        errorMessages[errorLine].push_back(ifErrors);
-    }
-    compound_statement();
 }
 
 bool k_13::SyntaxAnalyzer::arithmetic_expression() {

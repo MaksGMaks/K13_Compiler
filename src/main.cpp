@@ -1,7 +1,6 @@
 #include <iostream>
 #include "LexicalAnalyzer.hpp"
 #include "SyntaxAnalyzer.hpp"
-#include "SyntaxAnalyzer2.hpp"
 #include <filesystem>
 
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
