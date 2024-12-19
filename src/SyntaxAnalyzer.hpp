@@ -55,6 +55,9 @@ private:
     bool equality_expression();
     bool relational_expression();
 
+    bool string_expression();
+    bool string_factor();
+
     bool match(const LexemType expectedType);
     bool log_arith(const LexemType expectedType, const int current_position);
 };};
