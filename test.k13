@@ -22,6 +22,9 @@ end;
 
 for var1 := 1 to (var1 + 100) 
     vars := "test for cycle";
+    for var2 := 2 to 7
+        vars := vars + var2;
+    next var2;
 next var1;
 
 put(vars);

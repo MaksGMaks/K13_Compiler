@@ -309,6 +309,7 @@ void k_13::SyntaxAnalyzer::for_expression() {
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'for' statement");
     }
+    std::string forIdentifier = code[position-1].value;
     if(!match(LexemType::ASSIGN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ':=' after identifier");
     }
@@ -333,7 +334,10 @@ void k_13::SyntaxAnalyzer::for_expression() {
     }
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'next' statement");
+    } else if(code[position-1].value != forIdentifier) {
+        errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier " + forIdentifier + " after 'next' statement");
     }
+
 }
 
 bool k_13::SyntaxAnalyzer::arithmetic_expression() {
