@@ -4,8 +4,8 @@ var int16_t var1,
     bool varb,
     string vars;
 var1 := varb;
-var1 := 10 && ("varb" && true) || (10 + 1) && (var1 + varb);
-varb:= (false + 2 le ("varb" && false)) && (var1 ge 2 + 2);
+var1 := 10 && "varb" && true || (10 + 1) && (var1 + varb);
+varb:= ((false + 2) le "varb") && false && var1 ge 2 + 2;
 get(var1);
 vars:= "";
 if(varb || (var1 + 10)) goto yes;
@@ -20,13 +20,12 @@ goto end;
 
 end;
 
-for var1 1 to (var1 + 100) next
-start
-    var;
+for var1 := 1 to (var1 + 100) 
     vars := "test for cycle";
-    finish
+next var1;
+
 put(vars);
 put(10 + 4);
 put(70 && 2);
-put("test output");
+put("test output" + (32 le 5));
 finish
