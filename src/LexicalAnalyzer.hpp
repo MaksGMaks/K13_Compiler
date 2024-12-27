@@ -15,7 +15,7 @@ namespace k_13
 {
     class LexicalAnalyzer {
     public:
-        LexicalAnalyzer();
+        LexicalAnalyzer() = default;
         ~LexicalAnalyzer() = default;
     
         int readFromFile(const std::string &filename);
@@ -37,8 +37,8 @@ namespace k_13
         std::condition_variable getToken;
         std::atomic<bool> isEndOfFile;
 
-        int literalId;
-        int unknownId;
+        int literalId = 0;
+        int unknownId = 0;
 
         constants_k13 constants;
     };

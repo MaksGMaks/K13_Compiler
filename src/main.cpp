@@ -19,16 +19,20 @@ int main(int argc, char *argv[]) {
     
     int lexicalAnalysStatus = lexic.readFromFile(path);
     int syntaxAnalysStatus;
-    switch (lexicalAnalysStatus)
-    {
+    switch (lexicalAnalysStatus) {
     case 0:
         std::cout << "[INFO] Done\n";
         writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
         syntaxAnalysStatus = syntax.analyze(lexic.getLexems(), lexic.getUnknownLexems());
-        switch (syntaxAnalysStatus)
-        {
+        switch (syntaxAnalysStatus) {
         case 0:
             std::cout << "[INFO] Syntax analysis done" << std::endl;
+            for(auto &expression : syntax.getExpressions()) {
+                std::cout << "Expression: " << std::endl;
+                for(auto &lexem : expression.second) {
+                    std::cout << "\tLexem: " << lexem.value << std::endl;
+                }
+            }
             break;
         case -1:
             std::cout << "[INFO] Syntax errors found. Build failed" << std::endl;

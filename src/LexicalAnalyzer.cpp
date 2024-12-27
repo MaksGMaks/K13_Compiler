@@ -1,11 +1,5 @@
 #include "LexicalAnalyzer.hpp"
 namespace k_13 {
-    LexicalAnalyzer::LexicalAnalyzer() {
-        isEndOfFile = false;
-        literalId = 0;
-        unknownId = 0;
-    }
-
     const std::vector<Lexem> LexicalAnalyzer::getLexems() {
         return lexems;
     }

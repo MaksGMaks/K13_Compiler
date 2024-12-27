@@ -11,10 +11,15 @@
 namespace k_13 {
 class SyntaxAnalyzer {
 public:
-    SyntaxAnalyzer();
+    SyntaxAnalyzer() = default;
     ~SyntaxAnalyzer() = default;
 
     int analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknowns);
+    std::map<std::string, std::list<std::pair<int, ExpressionType>>> getIdentifiers() { return identifiers; }
+    std::map<std::string, std::list<std::pair<int, ExpressionType>>> getLabels() { return labels; }
+    std::map<std::string, LexemType> getVariableTable() { return variableTable; }
+    std::list<std::pair<LexemType, std::vector<Lexem>>> getExpressions() { return expressions; }
+    std::string getProgramName() { return programName; }
 private:
     int errors = 0;
     int position = 0;
@@ -23,6 +28,14 @@ private:
 
     std::vector<std::string> subErrors;
     std::map<int, std::vector<std::string>> errorMessages;
+
+    std::map<std::string, std::list<std::pair<int, ExpressionType>>> identifiers;
+    std::map<std::string, std::list<std::pair<int, ExpressionType>>> labels;
+    std::map<std::string, LexemType> variableTable;
+    std::list<std::pair<LexemType, std::vector<Lexem>>> expressions;
+    std::string programName;
+
+    std::vector<Lexem> expression;
 
     void program();
 
@@ -59,5 +72,4 @@ private:
     bool string_factor();
 
     bool match(const LexemType expectedType);
-    bool log_arith(const LexemType expectedType, const int current_position);
 };};
