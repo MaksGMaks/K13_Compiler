@@ -1,12 +1,11 @@
 program test;
 start
-var int16_t var1,
+var int16_t var1, var2,
     bool varb,
     string vars;
-var1 := varb;
-var1 := 10 && "varb" && true || (10 + 1) && (var1 + varb);
-varb:= ((false + 2) le "varb") && false && var1 ge 2 + 2;
 get(var1);
+var2 := 20;
+varb := 10 && "varb" && true || (10 + 1) && (var1 ge var2 );
 vars:= "";
 if(varb || (var1 + 10)) goto yes;
     start
@@ -20,12 +19,12 @@ goto end;
 
 end;
 
-for var1 := 1 to (var1 + 100) 
+for var3 := 1 to (var1 + 100)
     vars := "test for cycle";
-    for var2 := 2 to 7
+    for var4 := 2 to 7
         vars := vars + var2;
-    next var2;
-next var1;
+    next var4;
+next var3;
 
 put(vars);
 put(10 + 4);

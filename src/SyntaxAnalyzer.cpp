@@ -387,7 +387,7 @@ bool k_13::SyntaxAnalyzer::arithmetic_expression() {
     while(code[position].type == LexemType::ADD || code[position].type == LexemType::SUB) {
         expression.push_back(code[position]);
         position++;
-        result = term();
+        result &= term();
     }
     return result;
 }
@@ -397,7 +397,7 @@ bool k_13::SyntaxAnalyzer::term() {
     while(code[position].type == LexemType::MUL || code[position].type == LexemType::DIV || code[position].type == LexemType::MOD) {
         expression.push_back(code[position]);
         position++;
-        result = factor();
+        result &= factor();
     }
     return result;
 }
@@ -453,7 +453,7 @@ bool k_13::SyntaxAnalyzer::logical_expression() {
     while(code[position].type == LexemType::OR) {
         expression.push_back(code[position]);
         position++;
-        result = or_expression();
+        result &= or_expression();
     }
     return result;
 }
@@ -463,7 +463,7 @@ bool k_13::SyntaxAnalyzer::or_expression() {
     while(code[position].type == LexemType::AND) {
         expression.push_back(code[position]);
         position++;
-        result = and_expression();
+        result &= and_expression();
     }
     return result;
 }
@@ -473,7 +473,7 @@ bool k_13::SyntaxAnalyzer::and_expression() {
     while(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL) {
         expression.push_back(code[position]);
         position++;
-        result = equality_expression();
+        result &= equality_expression();
     }
     return result;
 }
@@ -483,7 +483,7 @@ bool k_13::SyntaxAnalyzer::equality_expression() {
     while(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL) {
         expression.push_back(code[position]);
         position++;
-        result = relational_expression();
+        result &= relational_expression();
     }
     return result;
 }
@@ -543,7 +543,7 @@ bool k_13::SyntaxAnalyzer::string_expression() {
     while(code[position].type == LexemType::ADD) {
         expression.push_back(code[position]);
         position++;
-        result = string_factor();
+        result &= string_factor();
     }
     return result;
 }
