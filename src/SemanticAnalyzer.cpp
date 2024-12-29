@@ -1,9 +1,11 @@
 #include "SemanticAnalyzer.hpp"
 
-int k_13::SemanticAnalyzer::analyze(const std::map<std::string, std::list<std::pair<int, ExpressionType>>> &identifiers
-, const std::map<std::string, std::list<std::pair<int, ExpressionType>>> &labels
-, const std::map<std::string, LexemType> &variableTable
-, const std::list<std::pair<LexemType, std::vector<Lexem>>> &expressions) {
+#include <memory>
+
+int k_13::SemanticAnalyzer::analyze(const std::map<std::string, std::vector<std::pair<int, ExpressionType>>> &identifiers
+                                    , const std::map<std::string, std::list<std::pair<int, ExpressionType>>> &labels
+                                    , const std::map<std::string, LexemType> &variableTable
+                                    , const std::list<std::pair<LexemType, std::vector<Lexem>>> &expressions) {
     bool identifiersChecked = checkIdentifiers(identifiers, labels);
     bool labelsChecked = checkLabels(labels);
     bool expressionsChecked = checkVariables(variableTable, expressions);
@@ -13,7 +15,7 @@ int k_13::SemanticAnalyzer::analyze(const std::map<std::string, std::list<std::p
     return -1;
 }
 
-bool k_13::SemanticAnalyzer::checkIdentifiers(const std::map<std::string, std::list<std::pair<int, ExpressionType>>> &identifiers
+bool k_13::SemanticAnalyzer::checkIdentifiers(const std::map<std::string, std::vector<std::pair<int, ExpressionType>>> &identifiers
 , const std::map<std::string, std::list<std::pair<int, ExpressionType>>> &labels) {
     errorMessages.clear();
     warnings.clear();
@@ -22,29 +24,31 @@ bool k_13::SemanticAnalyzer::checkIdentifiers(const std::map<std::string, std::l
             errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.begin()->first) + ": Identifier " + identifier.first + " is a label");
         } else {
             bool isInitialized = false, isDeclared = false, isUsed = false, isFor = false;
-            for(auto expression : identifier.second) {
-                switch(expression.second) {
+            std::tuple<bool, bool, bool> temp;
+            pos = 0;
+            wasDeclared = false;
+            while(pos < identifier.second.size()) {
+                switch(identifier.second.at(pos).second) {
                 case ExpressionType::START:
-                    break;
-                case ExpressionType::FINISH:
-                    isDeclared = false;
-                    isInitialized = false;
-                    isUsed = false;
+                    pos++;
+                    temp = std::make_tuple(isDeclared, isInitialized, isUsed);
+                    checkVariable(temp, identifier.second, identifier.first);
                     break;
                 case ExpressionType::ASSIGNMENT:
                 case ExpressionType::INPUT:
                     if(!isDeclared) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is not declared");
+                        errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is not declared");
                     }
                     if(isFor) {
-                        warnings.push_back("\tWarning at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is used in for loop. Possible undefined behavior");
+                        warnings.push_back("\tWarning at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is used in for loop. Possible undefined behavior");
                     }
                     isInitialized = true;
                     break;
                 case ExpressionType::STARTFOR:
                     if(isDeclared) {
-                        warnings.push_back("\tWarning at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is already declared. Possible undefined behavior");
+                        warnings.push_back("\tWarning at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is already declared. Possible undefined behavior");
                     }
+                    wasDeclared = true;
                     isFor = true;
                     break;
                 case ExpressionType::ENDFOR:
@@ -52,34 +56,36 @@ bool k_13::SemanticAnalyzer::checkIdentifiers(const std::map<std::string, std::l
                     break;
                 case ExpressionType::VARIABLE:
                     if(isDeclared) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is already declared");
+                        errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is already declared");
                     } else if(isFor) {
-                        errorMessages.push_back("\tWarning at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is used in for loop. Redeclaration is unacceptable"); 
+                        errorMessages.push_back("\tWarning at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is used in for loop. Redeclaration is unacceptable");
                     }
+                    wasDeclared = true;
                     isDeclared = true;
                     break;
                 case ExpressionType::IF:
-                case ExpressionType::EXPRESSION:    
+                case ExpressionType::EXPRESSION:
                 case ExpressionType::OUTPUT:
                     if(!isDeclared) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is not declared");
+                        errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is not declared");
                     } else if(!isInitialized) {
-                        errorMessages.push_back("\tSemantic error at line  " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is not initialized");
+                        errorMessages.push_back("\tSemantic error at line  " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is not initialized");
                     }
                     if(isFor) {
-                        warnings.push_back("\tWarning at line " + std::to_string(expression.first) + ": Identifier " + identifier.first + " is used in for loop. Possible undefined behavior");
+                        warnings.push_back("\tWarning at line " + std::to_string(identifier.second.at(pos).first) + ": Identifier " + identifier.first + " is used in for loop. Possible undefined behavior");
                     }
                     isUsed = true;
                     break;
                 default:
                     break;
                 }
+                pos++;
             }
-            if(!isDeclared || !isInitialized) {
-                errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.begin()->first) + ": Identifier " + identifier.first + " is not declared or initialized");
-            }
-            if(!isUsed) {
-                warnings.push_back("\tWarning at line " + std::to_string(identifier.second.begin()->first) + ": Identifier " + identifier.first + " is not used");
+            // if(!isUsed) {
+            //     warnings.push_back("\tWarning at line " + std::to_string(identifier.second.begin()->first) + ": Identifier " + identifier.first + " is not used");
+            // } else
+            if (!wasDeclared) {
+                errorMessages.push_back("\tSemantic error at line " + std::to_string(identifier.second.begin()->first) + ": Identifier " + identifier.first + " is not declared");
             }
         }
     }
@@ -177,40 +183,53 @@ bool k_13::SemanticAnalyzer::checkVariables(const std::map<std::string, LexemTyp
             }
             break;
         case LexemType::BOOL:
-            for(auto lexem : expression.second) {
-                if(lexem.type == LexemType::STRING || lexem.type == LexemType::STRING_LITERAL) {
+            if (expression.second.size() == 1 && expression.second.at(pos).type == LexemType::IDENTIFIER) {
+                if (variableTable.at(expression.second.at(pos).value) == LexemType::STRING) {
+                    errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression string can't use without comparation");
+                }
+            } else if (expression.second.size() == 1 && expression.second.at(pos).type == LexemType::STRING_LITERAL) {
+                errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression string literal can't use without comparation");
+            }
+            while (pos < expression.second.size()) {
+                if(expression.second.at(pos).type == LexemType::STRING || expression.second.at(pos).type == LexemType::STRING_LITERAL) {
                     hasString = true;
                     if(!concatOp) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(lexem.line) + ": In boolean expression string is used with non-concatenation operator"); 
+                        errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression string is used with non-concatenation operator");
                     }
-                } else if(lexem.type == LexemType::AND || lexem.type == LexemType::OR) {
-                    if(hasString != hasStringB) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(lexem.line) + ": In boolean expression both operands must be one type");
-                    } else if(hasString && !concatOp && !concatOpB) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(lexem.line) + ": In boolean expression string is used with non-concatenation operator"); 
+                } else if(expression.second.at(pos).type == LexemType::AND || expression.second.at(pos).type == LexemType::OR) {
+                    if (hasComp) {
+                        if(hasString != hasStringB) {
+                            errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression both operands must be one type");
+                        } else if(hasString && !concatOp && !concatOpB) {
+                            errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression string is used with non-concatenation operator");
+                        }
                     }
                     concatOp = true;
                     hasString = false;
                     hasComp = false;
-                } else if(lexem.type == LexemType::LESS || lexem.type == LexemType::GREATER 
-                          || lexem.type == LexemType::EQUAL || lexem.type == LexemType::NEQUAL) {
+                } else if(expression.second.at(pos).type == LexemType::LESS || expression.second.at(pos).type == LexemType::GREATER
+                          || expression.second.at(pos).type == LexemType::EQUAL || expression.second.at(pos).type == LexemType::NEQUAL) {
                     concatOpB = concatOp;
                     hasStringB = hasString;
                     concatOp = true;
                     hasString = false;
                     hasComp = true;
-                } else if(lexem.type == LexemType::RPAREN) {
-                    if(hasString != hasStringB) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(lexem.line) + ": In boolean expression both operands must be one type");
-                    } else if(hasString && !concatOp && !concatOpB) {
-                        errorMessages.push_back("\tSemantic error at line " + std::to_string(lexem.line) + ": In boolean expression string is used with non-concatenation operator"); 
+                } else if(expression.second.at(pos).type == LexemType::RPAREN) {
+                    if (hasComp) {
+                        if(hasString != hasStringB) {
+                            errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression both operands must be one type");
+                        } else if(hasString && !concatOp && !concatOpB) {
+                            errorMessages.push_back("\tSemantic error at line " + std::to_string(expression.second.at(pos).line) + ": In boolean expression string is used with non-concatenation operator");
+                        }
                     }
                     concatOp = true;
                     hasString = false;
                     hasComp = false;
-                } else if(lexem.type == LexemType::SUB || lexem.type == LexemType::MUL || lexem.type == LexemType::DIV || lexem.type == LexemType::MOD) {
+                } else if(expression.second.at(pos).type == LexemType::SUB || expression.second.at(pos).type == LexemType::MUL
+                          || expression.second.at(pos).type == LexemType::DIV || expression.second.at(pos).type == LexemType::MOD) {
                     concatOp = false;
-                } else if(lexem.type == LexemType::LPAREN) {
+                } else if(expression.second.at(pos).type == LexemType::LPAREN) {
+                    pos++;
                     auto res = checkExpression(expression.second, variableTable);
                     if(!std::get<0>(res)) {
                         concatOp &= std::get<1>(res);
@@ -222,6 +241,13 @@ bool k_13::SemanticAnalyzer::checkVariables(const std::map<std::string, LexemTyp
 
             break;
         case LexemType::STRING:
+            while (pos < expression.second.size()) {
+                if(expression.second.at(pos).type == LexemType::LPAREN) {
+                    pos++;
+                    checkExpression(expression.second, variableTable);
+                }
+                pos++;
+            }
             break;
         default:
             break;
@@ -249,10 +275,12 @@ std::tuple<bool, bool, bool> k_13::SemanticAnalyzer::checkExpression(const std::
                 errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression string is used with non-concatenation operator"); 
             }
         } else if(expression[pos].type == LexemType::AND || expression[pos].type == LexemType::OR) {
-            if(hasString != hasStringB) {
-                errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression both operands must be one type");
-            } else if(hasString && !concatOp && !concatOpB) {
-                errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression string is used with non-concatenation operator"); 
+            if (hasComp) {
+                if(hasString != hasStringB) {
+                    errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression both operands must be one type");
+                } else if(hasString && !concatOp && !concatOpB) {
+                    errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression string is used with non-concatenation operator");
+                }
             }
             concatOp = true;
             hasString = false;
@@ -265,10 +293,12 @@ std::tuple<bool, bool, bool> k_13::SemanticAnalyzer::checkExpression(const std::
             hasString = false;
             hasComp = true;
         } else if(expression[pos].type == LexemType::RPAREN) {
-            if(hasString != hasStringB) {
-                errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression both operands must be one type");
-            } else if(hasString && !concatOp && !concatOpB) {
-                errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression string is used with non-concatenation operator"); 
+            if (hasComp) {
+                if(hasString != hasStringB) {
+                    errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression both operands must be one type");
+                } else if(hasString && !concatOp && !concatOpB) {
+                    errorMessages.push_back("\tSemantic error at line " + std::to_string(expression[pos].line) + ": In boolean expression string is used with non-concatenation operator");
+                }
             }
             concatOp = true;
             hasString = false;
@@ -276,6 +306,7 @@ std::tuple<bool, bool, bool> k_13::SemanticAnalyzer::checkExpression(const std::
         } else if(expression[pos].type == LexemType::SUB || expression[pos].type == LexemType::MUL || expression[pos].type == LexemType::DIV || expression[pos].type == LexemType::MOD) {
             concatOp = false;
         } else if(expression[pos].type == LexemType::LPAREN) {
+            pos++;
             auto res = checkExpression(expression, variableTable);
             if(!std::get<0>(res)) {
                 concatOp &= std::get<1>(res);
@@ -285,4 +316,66 @@ std::tuple<bool, bool, bool> k_13::SemanticAnalyzer::checkExpression(const std::
         pos++;
     }
     return std::make_tuple(result, concatOp, hasString);
+}
+
+void k_13::SemanticAnalyzer::checkVariable(const std::tuple<bool, bool, bool> &varParams, std::vector<std::pair<int, ExpressionType>> &identifiers
+, const std::string &identifier) {
+    std::tuple<bool, bool, bool> temp;
+    bool isDeclared = (false | std::get<0>(varParams));
+    bool isInitialized = (false | std::get<1>(varParams));
+    bool isUsed = (false | std::get<2>(varParams)), isFor = false;
+    while(identifiers[pos].second != ExpressionType::FINISH) {
+        switch(identifiers[pos].second) {
+        case ExpressionType::START:
+            pos++;
+            temp = std::make_tuple(isDeclared, isInitialized, isUsed);
+            checkVariable(temp, identifiers, identifier);
+            break;
+        case ExpressionType::ASSIGNMENT:
+        case ExpressionType::INPUT:
+            if(!isDeclared) {
+                errorMessages.push_back("\tSemantic error at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is not declared");
+            }
+            if(isFor) {
+                warnings.push_back("\tWarning at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is used in for loop. Possible undefined behavior");
+            }
+            isInitialized = true;
+            break;
+        case ExpressionType::STARTFOR:
+            if(isDeclared) {
+                warnings.push_back("\tWarning at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is already declared. Possible undefined behavior");
+            }
+            wasDeclared = true;
+            isFor = true;
+            break;
+        case ExpressionType::ENDFOR:
+            isFor = false;
+            break;
+        case ExpressionType::VARIABLE:
+            if(isDeclared) {
+                errorMessages.push_back("\tSemantic error at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is already declared");
+            } else if(isFor) {
+                errorMessages.push_back("\tWarning at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is used in for loop. Redeclaration is unacceptable");
+            }
+            wasDeclared = true;
+            isDeclared = true;
+            break;
+        case ExpressionType::IF:
+        case ExpressionType::EXPRESSION:
+        case ExpressionType::OUTPUT:
+            if(!isDeclared) {
+                errorMessages.push_back("\tSemantic error at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is not declared");
+            } else if(!isInitialized) {
+                errorMessages.push_back("\tSemantic error at line  " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is not initialized");
+            }
+            if(isFor) {
+                warnings.push_back("\tWarning at line " + std::to_string(identifiers[pos].first) + ": Identifier " + identifier + " is used in for loop. Possible undefined behavior");
+            }
+            isUsed = true;
+            break;
+        default:
+            break;
+        }
+        pos++;
+    }
 }

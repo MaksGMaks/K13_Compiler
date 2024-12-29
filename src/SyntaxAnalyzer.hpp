@@ -15,7 +15,7 @@ public:
     ~SyntaxAnalyzer() = default;
 
     int analyze(const std::vector<Lexem> &lexems, const std::vector<UnknownLexem> &unknowns);
-    std::map<std::string, std::list<std::pair<int, ExpressionType>>> getIdentifiers() { return identifiers; }
+    std::map<std::string, std::vector<std::pair<int, ExpressionType>>> getIdentifiers() { return identifiers; }
     std::map<std::string, std::list<std::pair<int, ExpressionType>>> getLabels() { return labels; }
     std::map<std::string, LexemType> getVariableTable() { return variableTable; }
     std::list<std::pair<LexemType, std::vector<Lexem>>> getExpressions() { return expressions; }
@@ -29,7 +29,7 @@ private:
     std::vector<std::string> subErrors;
     std::map<int, std::vector<std::string>> errorMessages;
 
-    std::map<std::string, std::list<std::pair<int, ExpressionType>>> identifiers;
+    std::map<std::string, std::vector<std::pair<int, ExpressionType>>> identifiers;
     std::map<std::string, std::list<std::pair<int, ExpressionType>>> labels;
     std::map<std::string, LexemType> variableTable;
     std::list<std::pair<LexemType, std::vector<Lexem>>> expressions;

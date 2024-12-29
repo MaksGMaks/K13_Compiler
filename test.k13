@@ -3,10 +3,11 @@ start
 var int16_t var1, var2,
     bool varb,
     string vars;
+vars:= "";
 get(var1);
 var2 := 20;
-varb := 10 && "varb" && true || (10 + 1) && (var1 ge var2 );
-vars:= "";
+varb := 10 && "varb" && true || (10 + 1) && (var1 ge var2);
+varb := "tes" le "te";
 if(varb || (var1 + 10)) goto yes;
     start
     var;
@@ -28,6 +29,6 @@ next var3;
 
 put(vars);
 put(10 + 4);
-put(70 && 2);
-put("test output" + (32 le 5));
+put((70 && 2));
+put("test output" + ("tes" le "te" + 2));
 finish
