@@ -2,6 +2,7 @@
 #include "LexicalAnalyzer.hpp"
 #include "SyntaxAnalyzer.hpp"
 #include <filesystem>
+#include <SemanticAnalyzer.hpp>
 
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
                  const std::vector<k_13::UnknownLexem> &unknownLexems);
@@ -16,19 +17,30 @@ int main(int argc, char *argv[]) {
     std::string path = argv[1];
     k_13::LexicalAnalyzer lexic;
     k_13::SyntaxAnalyzer syntax;
+    k_13::SemanticAnalyzer semantic;
     
     int lexicalAnalysStatus = lexic.readFromFile(path);
     int syntaxAnalysStatus;
-    switch (lexicalAnalysStatus)
-    {
+    int semanticAnalysStatus;
+    switch (lexicalAnalysStatus) {
     case 0:
         std::cout << "[INFO] Done\n";
         writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
         syntaxAnalysStatus = syntax.analyze(lexic.getLexems(), lexic.getUnknownLexems());
-        switch (syntaxAnalysStatus)
-        {
+        switch (syntaxAnalysStatus) {
         case 0:
             std::cout << "[INFO] Syntax analysis done" << std::endl;
+            semanticAnalysStatus = semantic.analyze(syntax.getIdentifiers(), syntax.getLabels(), syntax.getVariableTable(), syntax.getExpressions());
+            switch (semanticAnalysStatus) {
+            case 0:
+                std::cout << "[INFO] Semantic analysis done" << std::endl;
+                break;
+            case -1:
+                std::cout << "[ERROR] Semantic analysis failed" << std::endl;
+                break;
+            default:
+                break;
+            }
             break;
         case -1:
             std::cout << "[INFO] Syntax errors found. Build failed" << std::endl;

@@ -71,6 +71,23 @@ namespace k_13 {
         UNKNOWN             // unknown token
     };
 
+    enum class ExpressionType {
+        ASSIGNMENT,         // assignment
+        INPUT,              // input
+        OUTPUT,             // output
+        GOTO,               // goto
+        LABEL,              // label
+        IF,                 // if
+        STARTFOR,           // start for
+        ENDFOR,             // end for
+        START,              // start
+        FINISH,             // finish
+        VARIABLE,           // variable
+        PROGRAM,            // program
+        EXPRESSION          // expression
+    };
+    
+
     struct Lexem {
         LexemType type{};
         std::string value{};
