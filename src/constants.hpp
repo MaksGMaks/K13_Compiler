@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <map>
+#include <optional>
 
 namespace k_13 {
     enum class State {
@@ -56,6 +57,8 @@ namespace k_13 {
         LESS,               // le (less than)
         GREATER,            // ge (greater than)
 
+        LABEL,
+
         AND,                // && (logical AND)
         OR,                 // || (logical OR)
         NOT,                // !! (logical NOT)
@@ -103,6 +106,26 @@ namespace k_13 {
     struct UnknownLexem {
         int id{};
         std::string value{};
+    };
+
+    struct Keyword {
+        LexemType keyword{};
+        // expression (if, :=, put, for)
+        std::vector<Lexem> expression1{};
+        std::vector<Lexem> expression2{};
+
+        // goto-label-get
+        std::string label{};
+        std::string label2{};
+        std::string label3{};
+
+        // for, if
+        std::vector<Keyword> comp{};
+
+        // comp
+        std::vector<Keyword> keywords{};
+        std::map<std::string, LexemType> variables{};
+
     };
 
     struct constants_k13

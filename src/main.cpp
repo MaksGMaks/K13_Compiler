@@ -1,31 +1,47 @@
 #include <iostream>
+#include <cstdlib>
+#include <filesystem>
+
 #include "LexicalAnalyzer.hpp"
 #include "SyntaxAnalyzer.hpp"
-#include <filesystem>
-#include <SemanticAnalyzer.hpp>
+#include "SemanticAnalyzer.hpp"
+#include "Generator.hpp"
 
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
-                 const std::vector<k_13::UnknownLexem> &unknownLexems);
+                 const std::vector<k_13::UnknownLexem> &unknownLexems, const std::string &outDir);
 
 std::string findDistance(const int maxSize, const std::string &lexems);
+bool isGppInstalled();
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    if (argc < 2) {
         std::cerr << "Error: input path to file for compilation" << std::endl;
         return -1;
+    }
+    std::string outDir;
+    if(argc == 3) {
+        outDir = argv[2];
+    } else {
+        std::filesystem::path arg1 = argv[1];
+        outDir = (arg1.parent_path() / "build");
     }
     std::string path = argv[1];
     k_13::LexicalAnalyzer lexic;
     k_13::SyntaxAnalyzer syntax;
     k_13::SemanticAnalyzer semantic;
-    
+    k_13::Generator generator;
+
+    std::string objGenCom = "g++ -c ";
+    std::string exeGenCom = "g++ ";
+
     int lexicalAnalysStatus = lexic.readFromFile(path);
     int syntaxAnalysStatus;
     int semanticAnalysStatus;
+    int generatorStatus;
     switch (lexicalAnalysStatus) {
     case 0:
         std::cout << "[INFO] Done\n";
-        writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems());
+        writeLexems(lexic.getLexems(), lexic.getLiterals(), lexic.getUnknownLexems(), outDir);
         syntaxAnalysStatus = syntax.analyze(lexic.getLexems(), lexic.getUnknownLexems());
         switch (syntaxAnalysStatus) {
         case 0:
@@ -34,6 +50,31 @@ int main(int argc, char *argv[]) {
             switch (semanticAnalysStatus) {
             case 0:
                 std::cout << "[INFO] Semantic analysis done" << std::endl;
+                generatorStatus = generator.createCpp(syntax.getKeywords(), syntax.getProgramName(), outDir, lexic.getLiterals());
+                switch (generatorStatus) {
+                case 0:
+                    std::cout << "[INFO] Generation completed to " << outDir << "/" << syntax.getProgramName() << ".cpp" << std::endl;
+                    if (isGppInstalled()) {
+                        objGenCom += outDir + "/" + syntax.getProgramName() + ".cpp -o " + outDir + "/" + syntax.getProgramName();
+                        exeGenCom += outDir + "/" + syntax.getProgramName() + ".cpp -o " + outDir + "/" + syntax.getProgramName();
+                        #ifdef _WIN32
+                            objGenCom += ".obj";
+                            exeGenCom += ".exe";
+                        #else
+                            objGenCom += ".o";
+                        #endif
+                        std::system(exeGenCom.c_str());
+                        std::system(objGenCom.c_str());
+                    } else {
+                        std::cout << "[WARN] g++ (gcc) isn't installed in your system. To generate executive file use any c++ compiler or install g++ and rerun k13 compiler" << std::endl;
+                    }
+                    break;
+                case -1:
+                    std::cout << "[ERROR] Generator error. Can't create file" << std::endl;
+                    break;
+                default:
+                    break;
+                }
                 break;
             case -1:
                 std::cout << "[ERROR] Semantic analysis failed" << std::endl;
@@ -43,17 +84,17 @@ int main(int argc, char *argv[]) {
             }
             break;
         case -1:
-            std::cout << "[INFO] Syntax errors found. Build failed" << std::endl;
+            std::cout << "[ERROR] Syntax errors found. Build failed" << std::endl;
             break;
         default:
             break;
         }
         break;
     case -1:
-        std::cout << "Wrong file type. Require .k13\n";
+        std::cout << "[ERROR] Wrong file type. Require .k13\n";
         break;
     case -2:
-        std::cout << "Can't reach file with path: " << path << std::endl;
+        std::cout << "[ERROR] Can't reach file with path: " << path << std::endl;
         break;
     default:
         break;
@@ -61,10 +102,21 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+bool isGppInstalled() {
+    int result = std::system("g++ --version"); //g++ --version > /dev/null 2>&1
+    return (result == 0);
+}
+
 void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
-                 const std::vector<k_13::UnknownLexem> &unknownLexems) {
+                 const std::vector<k_13::UnknownLexem> &unknownLexems, const std::string &outDir) {
     k_13::constants_k13 constants;
-    std::filesystem::path outputFile = std::filesystem::current_path() / "allLexems.txt";
+
+    std::filesystem::path outputFile = outDir;
+    if (!std::filesystem::create_directory(outDir)) {
+        std::cout << "[WARN] Directory exists. Make sure it's empty" << std::endl;
+    }
+    outputFile /= "allLexems.txt";
+
     std::ofstream file(outputFile);
     if(file.is_open()) {
         file << "|----------------------------------------------------------------------------------------|\n";

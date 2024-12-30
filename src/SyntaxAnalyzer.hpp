@@ -19,6 +19,7 @@ public:
     std::map<std::string, std::list<std::pair<int, ExpressionType>>> getLabels() { return labels; }
     std::map<std::string, LexemType> getVariableTable() { return variableTable; }
     std::list<std::pair<LexemType, std::vector<Lexem>>> getExpressions() { return expressions; }
+    std::vector<Keyword> getKeywords() {return keywords;};
     std::string getProgramName() { return programName; }
 private:
     int errors = 0;
@@ -35,28 +36,29 @@ private:
     std::list<std::pair<LexemType, std::vector<Lexem>>> expressions;
     std::string programName;
 
+    std::vector<Keyword> keywords;
     std::vector<Lexem> expression;
 
     void program();
 
     void program_declaration();
-    void compound_statement();
-    void program_body();
+    Keyword compound_statement();
+    std::vector<Keyword> program_body();
 
-    void variable_declaration();
-    void variable_list();
+    std::map<std::string, LexemType> variable_declaration();
+    std::map<std::string, LexemType> variable_list();
 
-    void statement();
+    Keyword statement();
 
-    void goto_expression();
-    void end_goto_expression();
-    void if_expression();
-    void for_expression();
+    Keyword goto_expression();
+    Keyword end_goto_expression();
+    Keyword if_expression();
+    Keyword for_expression();
     
-    void get_expression();
-    void put_expression();
+    Keyword get_expression();
+    Keyword put_expression();
 
-    void assign_expression();
+    Keyword assign_expression();
 
     bool arithmetic_expression();
     bool term();
