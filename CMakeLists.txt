@@ -10,6 +10,7 @@ set(ALL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexicalAnalyzer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SyntaxAnalyzer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SemanticAnalyzer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Generator.cpp
     )
 
 # Create executable

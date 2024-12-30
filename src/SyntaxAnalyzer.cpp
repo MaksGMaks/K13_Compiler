@@ -7,7 +7,7 @@ int k_13::SyntaxAnalyzer::analyze(const std::vector<Lexem> &lexems, const std::v
     position = 0;
 
     program();
-    if(errorMessages.size() > 0) {
+    if(!errorMessages.empty()) {
         for(auto message : errorMessages) {
             std::cerr << message.second.front() << std::endl;
         }
@@ -27,7 +27,7 @@ bool k_13::SyntaxAnalyzer::match(const LexemType expectedType) {
 
 void k_13::SyntaxAnalyzer::program() {
     program_declaration();
-    program_body();
+    keywords = program_body();
 }
 
 void k_13::SyntaxAnalyzer::program_declaration() {
@@ -45,18 +45,20 @@ void k_13::SyntaxAnalyzer::program_declaration() {
     }
 }
 
-void k_13::SyntaxAnalyzer::compound_statement() {
+k_13::Keyword k_13::SyntaxAnalyzer::compound_statement() {
+    Keyword compaund;
     if(!match(LexemType::START)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'start' keyword before compound statement");
     }
+    compaund.keyword = LexemType::START;
     for(auto identifier : identifiers) {
         identifiers[identifier.first].push_back(std::make_pair(code[position-1].line, ExpressionType::START));
     }
     for(auto label : labels) {
         labels[label.first].push_back(std::make_pair(code[position-1].line, ExpressionType::START));
     }
-    variable_declaration();
-    program_body();
+    compaund.variables = variable_declaration();
+    compaund.keywords = program_body();
     if(!match(LexemType::FINISH)) {
         errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Expected 'finish' keyword after compound statement");
     }
@@ -66,25 +68,29 @@ void k_13::SyntaxAnalyzer::compound_statement() {
     for(auto label : labels) {
         labels[label.first].push_back(std::make_pair(code[position-1].line, ExpressionType::FINISH));
     }
+    return compaund;
 }
 
-void k_13::SyntaxAnalyzer::program_body() {
+std::vector<k_13::Keyword> k_13::SyntaxAnalyzer::program_body() {
+    std::vector<Keyword> keywords_;
     do {
-        statement();
+        keywords_.push_back(statement());
         if(position >= code.size()) {
             break;
         }
     }
     while(code[position].type != LexemType::FINISH && position < code.size());
+    return keywords_;
 }
 
-void k_13::SyntaxAnalyzer::statement() {
+k_13::Keyword k_13::SyntaxAnalyzer::statement() {
+    Keyword statement_key;
     switch(code[position].type) {
         case LexemType::START:
-            compound_statement();
+            statement_key = compound_statement();
             break;
         case LexemType::GET:
-            get_expression();
+            statement_key = get_expression();
             if(!match(LexemType::SEMICOLON)) {
                 (position < code.size()) 
                 ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
@@ -92,7 +98,7 @@ void k_13::SyntaxAnalyzer::statement() {
             }
             break;
         case LexemType::PUT:
-            put_expression();
+            statement_key = put_expression();
             if(!match(LexemType::SEMICOLON)) {
                 (position < code.size()) 
                 ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
@@ -100,10 +106,10 @@ void k_13::SyntaxAnalyzer::statement() {
             }
             break;
         case LexemType::IF:
-            if_expression();
+            statement_key = if_expression();
             break;
         case LexemType::GOTO:
-            goto_expression();
+            statement_key = goto_expression();
             if(!match(LexemType::SEMICOLON)) {
                 (position < code.size()) 
                 ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
@@ -111,7 +117,7 @@ void k_13::SyntaxAnalyzer::statement() {
             }
             break;
         case LexemType::FOR:
-            for_expression();
+            statement_key = for_expression();
             if(!match(LexemType::SEMICOLON)) {
                 (position < code.size()) 
                 ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
@@ -120,9 +126,9 @@ void k_13::SyntaxAnalyzer::statement() {
             break;
         case LexemType::IDENTIFIER:
             if(code[position+1].type == LexemType::ASSIGN) {
-                assign_expression();
+                statement_key = assign_expression();
             } else {
-                end_goto_expression();
+                statement_key = end_goto_expression();
             }
             if(!match(LexemType::SEMICOLON)) {
                 (position < code.size()) 
@@ -141,33 +147,40 @@ void k_13::SyntaxAnalyzer::statement() {
             position++;
             break;
     }
+    return statement_key;
 }
 
-void k_13::SyntaxAnalyzer::variable_declaration() {
+std::map<std::string, k_13::LexemType> k_13::SyntaxAnalyzer::variable_declaration() {
+    std::map<std::string, LexemType> declaredVariables{};
     if(!match(LexemType::VAR)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'var' keyword before variable segment");
     }
     if(code[position].type == LexemType::INT || code[position].type == LexemType::BOOL || code[position].type == LexemType::STRING)
-        variable_list();
+        declaredVariables = variable_list();
 
     if(!match(LexemType::SEMICOLON)) {
         (position < code.size()) 
         ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
         : errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' after statement " + code[position - 1].value);
     }
+    return declaredVariables;
 }
 
-void k_13::SyntaxAnalyzer::variable_list() {
+std::map<std::string, k_13::LexemType> k_13::SyntaxAnalyzer::variable_list() {
+    std::map<std::string, LexemType> declaredVariables;
     LexemType type = code[position].type;
     position++;
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after variable type");
     }
     variableTable[code[position-1].value] = type;
+    declaredVariables[code[position-1].value] = type;
     identifiers[code[position-1].value].push_back(std::make_pair(code[position-1].line, ExpressionType::VARIABLE));
     while(code[position].type == LexemType::COMMA) {
         position++;
         if(code[position].type == LexemType::IDENTIFIER) {
+            variableTable[code[position].value] = type;
+            declaredVariables[code[position].value] = type;
             identifiers[code[position].value].push_back(std::make_pair(code[position-1].line, ExpressionType::VARIABLE));
             position++;
         } else {
@@ -179,12 +192,16 @@ void k_13::SyntaxAnalyzer::variable_list() {
                 errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after variable type");
             }
             variableTable[code[position-1].value] = type;
+            declaredVariables[code[position-1].value] = type;
             identifiers[code[position-1].value].push_back(std::make_pair(code[position-1].line, ExpressionType::VARIABLE));
         }
     }
+    return declaredVariables;
 }
 
-void k_13::SyntaxAnalyzer::get_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::get_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::GET;
     position++;
     if(!match(LexemType::LPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected '(' before identifier");
@@ -192,13 +209,17 @@ void k_13::SyntaxAnalyzer::get_expression() {
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'get' statement");
     }
+    statm.label = code[position-1].value;
     identifiers[code[position-1].value].push_back(std::make_pair(code[position-1].line, ExpressionType::INPUT));
     if(!match(LexemType::RPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ')' after identifier");
     }
+    return statm;
 }
 
-void k_13::SyntaxAnalyzer::put_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::put_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::PUT;
     position++;
     if(!match(LexemType::LPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected '(' before identifier");
@@ -209,13 +230,18 @@ void k_13::SyntaxAnalyzer::put_expression() {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected string expression after '(' statement");
     } else {
         expressions.push_back(std::make_pair(LexemType::STRING, expression));
+        statm.expression1 = expression;
     }
     if(!match(LexemType::RPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ')' after expression in 'put' statement");
     }
+    return statm;
 }
 
-void k_13::SyntaxAnalyzer::assign_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::assign_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::ASSIGN;
+    statm.label = code[position].value;
     identifiers[code[position].value].push_back(std::make_pair(code[position-1].line, ExpressionType::ASSIGNMENT));
     std::string identifier = code[position].value;
     position++;
@@ -229,50 +255,64 @@ void k_13::SyntaxAnalyzer::assign_expression() {
             errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected string expression after '(' statement");
         } else {
             expressions.push_back(std::make_pair(LexemType::STRING, expression));
+            statm.expression1 = expression;
         }
     } else {
         if(!logical_expression()) {
             errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical expression after '(' statement");
         } else {
             expressions.push_back(std::make_pair(LexemType::BOOL, expression));
+            statm.expression1 = expression;
         }
     }
+    return statm;
 }
 
-void k_13::SyntaxAnalyzer::goto_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::goto_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::GOTO;
     if(!match(LexemType::GOTO)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'goto' keyword before identifier");
     }
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'goto' statement");
     }
+    statm.label = code[position-1].value;
     labels[code[position-1].value].push_back(std::make_pair(code[position-1].line, ExpressionType::GOTO));
+    return statm;
 }
 
-void k_13::SyntaxAnalyzer::end_goto_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::end_goto_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::LABEL;
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'end' statement");
     }
+    statm.label = code[position-1].value;
     labels[code[position-1].value].push_back(std::make_pair(code[position-1].line, ExpressionType::LABEL));
+    return statm;
 }
 
-void k_13::SyntaxAnalyzer::if_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::if_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::IF;
     position++;
     if(!match(LexemType::LPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected '(' before condition expression");
     }
-    int current_position = position;
     expression.clear();
     subErrors.clear();
     if(!logical_expression()) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected logical expression after '(' statement");
     } else {
         expressions.push_back(std::make_pair(LexemType::BOOL, expression));
+        statm.expression1 = expression;
     }
     if(!match(LexemType::RPAREN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ')' after condition expression");
     }
-    goto_expression();
+    Keyword gotoS = goto_expression();
+    statm.label = gotoS.label;
     if(!match(LexemType::SEMICOLON)) {
         (position < code.size()) 
         ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
@@ -290,33 +330,39 @@ void k_13::SyntaxAnalyzer::if_expression() {
     }
     if(position == code.size() - 1) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + startLine + ": Expected 'start' keyword after 'if' statement");
-        return;
+        return {};
     }
     if(ifErrors != "") {
         ifErrors += "\n";
         errorMessages[errorLine].push_back(ifErrors);
     }
-    compound_statement();
-    goto_expression();
+    statm.comp.push_back(compound_statement());
+    Keyword gotoS2 = goto_expression();
+    statm.label2 = gotoS2.label;
     if(!match(LexemType::SEMICOLON)) {
         (position < code.size()) 
         ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
         : errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' after statement " + code[position - 1].value);
     }
-    end_goto_expression();
+    Keyword gotoS3 = end_goto_expression();
+    statm.label3 = gotoS3.label;
     if(!match(LexemType::SEMICOLON)) {
         (position < code.size()) 
         ? errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' before statement " + code[position].value)
         : errorMessages[code[position-1].line].push_back("\tSyntax error at line " + std::to_string(code[position-1].line) + ": Missing ';' after statement " + code[position - 1].value);
     }
+    return statm;
 }
     
-void k_13::SyntaxAnalyzer::for_expression() {
+k_13::Keyword k_13::SyntaxAnalyzer::for_expression() {
+    Keyword statm;
+    statm.keyword = LexemType::FOR;
     position++;
     if(!match(LexemType::IDENTIFIER)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier after 'for' statement");
     }
     std::string forIdentifier = code[position-1].value;
+    statm.label = forIdentifier;
     identifiers[forIdentifier].push_back(std::make_pair(code[position-1].line, ExpressionType::STARTFOR));
     if(!match(LexemType::ASSIGN)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ':=' after identifier");
@@ -327,6 +373,7 @@ void k_13::SyntaxAnalyzer::for_expression() {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected arithmetic expression after ':=' statement");
     } else {
         expressions.push_back(std::make_pair(LexemType::NUMBER, expression));
+        statm.expression1 = expression;
     }
     if(!match(LexemType::TO)) {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected 'to' keyword after identifier");
@@ -337,9 +384,10 @@ void k_13::SyntaxAnalyzer::for_expression() {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected arithmetic expression after 'to' statement");
     } else {
         expressions.push_back(std::make_pair(LexemType::NUMBER, expression));
+        statm.expression2 = expression;
     }
     do {
-        statement();
+        statm.keywords.push_back(statement());
         if(position >= code.size()) {
             break;
         }
@@ -354,7 +402,7 @@ void k_13::SyntaxAnalyzer::for_expression() {
         errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected identifier " + forIdentifier + " after 'next' statement");
     }
     identifiers[forIdentifier].push_back(std::make_pair(code[position-1].line, ExpressionType::ENDFOR));
-
+    return statm;
 }
 
 bool k_13::SyntaxAnalyzer::arithmetic_expression() {
