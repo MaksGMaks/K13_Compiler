@@ -2,11 +2,12 @@ program test;
 start
 var int16_t var1, var2,
     bool varb,
-    string vars;
+    string vars, vars2;
 vars:= "";
+vars2:= "";
 get(var1);
 var2 := 20;
-varb := 10 && "varb" && true || (10 + 1) && (var1 ge var2);
+varb := 10 && "vars" && true || !!(10 + 1) && (var1 ge var2);
 varb := "tes" le "te";
 if(varb || (var1 + 10)) goto yes;
     start
@@ -16,8 +17,6 @@ goto end;
 
 yes;
 vars := "Var1 is equal 10";
-goto end;
-
 end;
 
 for var3 := 1 to (var1 + 100)
@@ -30,5 +29,5 @@ next var3;
 put(vars);
 put(10 + 4);
 put((70 && 2));
-put("test output" + ("tes" le "te" + 2));
+put("test output" + (!!("tes")));
 finish
