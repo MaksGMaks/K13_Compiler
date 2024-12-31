@@ -11,8 +11,9 @@ int k_13::Generator::createCpp(const std::vector<Keyword> &keywords, const std::
     literals = literals_;
     std::map<std::string, LexemType> identifiers;
     file << "#include <iostream>\n"
-                  "#include <sstream>\n\n"
-                  "int main()";
+            "#include <string>\n"
+            "#include <sstream>\n\n"
+            "int main()";
     statement_ch(keywords, identifiers, file);
     file.close();
     return 0;
@@ -146,9 +147,11 @@ void k_13::Generator::str_expression(const std::vector<Lexem> &expressions, std:
     for (auto exp : expressions) {
         switch (exp.type) {
         case LexemType::LPAREN:
+            if (!hasLP)
+                file << "<< ";
             hasLP = true;
             depth++;
-            file << "<< (";
+            file << "(";
             break;
         case LexemType::RPAREN:
             depth--;

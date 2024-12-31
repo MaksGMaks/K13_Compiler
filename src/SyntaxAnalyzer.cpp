@@ -472,28 +472,18 @@ bool k_13::SyntaxAnalyzer::factor() {
 }
 
 bool k_13::SyntaxAnalyzer::logical_expression() {
-    bool result = or_expression();
+    bool result = logical_term();
     while(code[position].type == LexemType::OR) {
         expression.push_back(code[position]);
         position++;
-        result &= or_expression();
+        result &= logical_term();
     }
     return result;
 }
 
-bool k_13::SyntaxAnalyzer::or_expression() {
-    bool result = and_expression();
-    while(code[position].type == LexemType::AND) {
-        expression.push_back(code[position]);
-        position++;
-        result &= and_expression();
-    }
-    return result;
-}
-
-bool k_13::SyntaxAnalyzer::and_expression() {
+bool k_13::SyntaxAnalyzer::logical_term() {
     bool result = equality_expression();
-    while(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL) {
+    while(code[position].type == LexemType::AND) {
         expression.push_back(code[position]);
         position++;
         result &= equality_expression();
@@ -502,60 +492,67 @@ bool k_13::SyntaxAnalyzer::and_expression() {
 }
 
 bool k_13::SyntaxAnalyzer::equality_expression() {
-    bool result = relational_expression();
-    while(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL) {
+    bool result = true;
+    if (code[position].type == LexemType::NOT) {
         expression.push_back(code[position]);
         position++;
-        result &= relational_expression();
+        if (!match(LexemType::LPAREN)) {
+            errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected '(' after NOT operator");
+        }
+        expression.push_back(code[position-1]);
+        result = logical_expression();
+        if (!match(LexemType::RPAREN)) {
+            errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ')' after expression");
+        }
+        expression.push_back(code[position-1]);
+    } else {
+        result = relational_expression();
+    }
+    if(code[position].type == LexemType::EQUAL || code[position].type == LexemType::NEQUAL) {
+        expression.push_back(code[position]);
+        position++;
+        if (code[position].type == LexemType::NOT) {
+            expression.push_back(code[position]);
+            position++;
+            if (!match(LexemType::LPAREN)) {
+                errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected '(' after NOT operator");
+            }
+            expression.push_back(code[position-1]);
+            result &= logical_expression();
+            if (!match(LexemType::RPAREN)) {
+                errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected ')' after expression");
+            }
+            expression.push_back(code[position-1]);
+        } else {
+            result &= relational_expression();
+        }
     }
     return result;
 }
 
 bool k_13::SyntaxAnalyzer::relational_expression() {
     bool result = true;
-    int current_position = position;
-    int expressionSize = expression.size();
-    if(!arithmetic_expression()) {
-        expression.erase(expression.begin() + expressionSize, expression.end());
-        int subErrorsSize = subErrors.size();
-        position = current_position;
-        if(!string_expression()) {
-            std::string error = "\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression"
-                                "\n\tPossible problem for numerical:\n";
-            for(int i = 0; i < subErrorsSize; i++) {
-                error += "\t" + subErrors[i] + "\n";
-            }
-            error += "\tPossible problem for string:\n";
-            for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                error += "\t" + subErrors[i] + "\n";
-            }
-            errorMessages[code[position].line].push_back(error);
+    if (code[position].type != LexemType::STRING_LITERAL) {
+        if(!arithmetic_expression()) {
+            errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression");
             result = false;
         }
-    }
-    
-    while(code[position].type == LexemType::LESS || code[position].type == LexemType::GREATER) {
+    } else {
         expression.push_back(code[position]);
         position++;
-        int current_position = position;
-        int expressionSize = expression.size();
-        if(!arithmetic_expression()) {
-            expression.erase(expression.begin() + expressionSize, expression.end());
-            int subErrorsSize = subErrors.size();
-            position = current_position;
-            if(!string_expression()) {
-                std::string error = "\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression"
-                                    "\n\tPossible problem for numerical:\n";
-                for(int i = 0; i < subErrorsSize; i++) {
-                    error += "\t" + subErrors[i] + "\n";
-                }
-                error += "\tPossible problem for string:\n";
-                for(int i = subErrorsSize; i < subErrors.size(); i++) {
-                    error += "\t" + subErrors[i] + "\n";
-                }
-                errorMessages[code[position].line].push_back(error);
+    }
+
+    if(code[position].type == LexemType::LESS || code[position].type == LexemType::GREATER) {
+        expression.push_back(code[position]);
+        position++;
+        if (code[position].type != LexemType::STRING_LITERAL) {
+            if(!arithmetic_expression()) {
+                errorMessages[code[position].line].push_back("\tSyntax error at line " + std::to_string(code[position].line) + ": Expected expression");
                 result = false;
             }
+        } else {
+            expression.push_back(code[position]);
+            position++;
         }
     }
     return result;

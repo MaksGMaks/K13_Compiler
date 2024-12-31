@@ -7,23 +7,24 @@
 #include "SemanticAnalyzer.hpp"
 #include "Generator.hpp"
 
-void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
-                 const std::vector<k_13::UnknownLexem> &unknownLexems, const std::string &outDir);
+void writeLexems(const std::vector<k_13::Lexem>& lexems, const std::vector<k_13::Literal>& literals,
+    const std::vector<k_13::UnknownLexem>& unknownLexems, const std::string& outDir);
 
-std::string findDistance(const int maxSize, const std::string &lexems);
+std::string findDistance(const int maxSize, const std::string& lexems);
 bool isGppInstalled();
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Error: input path to file for compilation" << std::endl;
         return -1;
     }
     std::string outDir;
-    if(argc == 3) {
+    if (argc == 3) {
         outDir = argv[2];
-    } else {
+    }
+    else {
         std::filesystem::path arg1 = argv[1];
-        outDir = (arg1.parent_path() / "build");
+        outDir = (arg1.parent_path() / "build").string();
     }
     std::string path = argv[1];
     k_13::LexicalAnalyzer lexic;
@@ -32,6 +33,9 @@ int main(int argc, char *argv[]) {
     k_13::Generator generator;
 
     std::string objGenCom = "g++ -c ";
+    std::filesystem::path cppPath = outDir;
+    std::filesystem::path objPath = outDir;
+    std::filesystem::path exePath = outDir;
     std::string exeGenCom = "g++ ";
 
     int lexicalAnalysStatus = lexic.readFromFile(path);
@@ -53,19 +57,24 @@ int main(int argc, char *argv[]) {
                 generatorStatus = generator.createCpp(syntax.getKeywords(), syntax.getProgramName(), outDir, lexic.getLiterals());
                 switch (generatorStatus) {
                 case 0:
-                    std::cout << "[INFO] Generation completed to " << outDir << "/" << syntax.getProgramName() << ".cpp" << std::endl;
+                    cppPath /= syntax.getProgramName() + ".cpp";
+                    std::cout << "[INFO] Generation completed to " << cppPath.string() << std::endl;
                     if (isGppInstalled()) {
-                        objGenCom += outDir + "/" + syntax.getProgramName() + ".cpp -o " + outDir + "/" + syntax.getProgramName();
-                        exeGenCom += outDir + "/" + syntax.getProgramName() + ".cpp -o " + outDir + "/" + syntax.getProgramName();
-                        #ifdef _WIN32
-                            objGenCom += ".obj";
-                            exeGenCom += ".exe";
-                        #else
-                            objGenCom += ".o";
-                        #endif
+                        objPath /= syntax.getProgramName();
+                        exePath /= syntax.getProgramName();
+                        objGenCom += cppPath.string() + " -o " + objPath.string();
+                        exeGenCom += cppPath.string() + " -o " + exePath.string();
+#ifdef _WIN32
+                        objGenCom += ".obj";
+                        exeGenCom += ".exe";
+#else
+                        objGenCom += ".o";
+#endif
                         std::system(exeGenCom.c_str());
                         std::system(objGenCom.c_str());
-                    } else {
+                        std::cout << "[INFO] G++ finish" << std::endl;
+                    }
+                    else {
                         std::cout << "[WARN] g++ (gcc) isn't installed in your system. To generate executive file use any c++ compiler or install g++ and rerun k13 compiler" << std::endl;
                     }
                     break;
@@ -107,8 +116,8 @@ bool isGppInstalled() {
     return (result == 0);
 }
 
-void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13::Literal> &literals, 
-                 const std::vector<k_13::UnknownLexem> &unknownLexems, const std::string &outDir) {
+void writeLexems(const std::vector<k_13::Lexem>& lexems, const std::vector<k_13::Literal>& literals,
+    const std::vector<k_13::UnknownLexem>& unknownLexems, const std::string& outDir) {
     k_13::constants_k13 constants;
 
     std::filesystem::path outputFile = outDir;
@@ -118,16 +127,16 @@ void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13:
     outputFile /= "allLexems.txt";
 
     std::ofstream file(outputFile);
-    if(file.is_open()) {
+    if (file.is_open()) {
         file << "|----------------------------------------------------------------------------------------|\n";
         file << "|                                     Lexems table                                       |\n";
         file << "|----------------------------------------------------------------------------------------|\n";
         file << "|   line number  |     lexem     |     value     |  lexem code  |     type of lexem      |\n";
         file << "|----------------------------------------------------------------------------------------|\n";
-        for(auto lexem : lexems) {
-            file << "|\t" << lexem.line <<  findDistance(14, std::to_string(lexem.line)) << " |\t" << lexem.value << findDistance(10, lexem.value) << " |\t" << lexem.constant << "\t |\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " \t|\t" ;
-            for(auto &enumToString : constants.enumToStringLexems) {
-                if(lexem.type == enumToString.first) {
+        for (auto lexem : lexems) {
+            file << "|\t" << lexem.line << findDistance(14, std::to_string(lexem.line)) << " |\t" << lexem.value << findDistance(10, lexem.value) << " |\t" << lexem.constant << "\t |\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " \t|\t";
+            for (auto& enumToString : constants.enumToStringLexems) {
+                if (lexem.type == enumToString.first) {
                     file << enumToString.second << findDistance(18, enumToString.second) << " |\n";
                     break;
                 }
@@ -140,7 +149,7 @@ void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13:
         file << "|----------------------------------------------------------------------------------------\n";
         file << "|   literal id   | value \n";
         file << "|----------------------------------------------------------------------------------------\n";
-        for(auto literal : literals) {
+        for (auto literal : literals) {
             file << "|\t" << literal.id << findDistance(10, std::to_string(literal.id)) << " |\t" << literal.value << " \n";
             file << "|----------------------------------------------------------------------------------------\n";
         }
@@ -150,7 +159,7 @@ void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13:
         file << "|----------------------------------------------------------------------------------------\n";
         file << "|   unknown id   | value \n";
         file << "|----------------------------------------------------------------------------------------\n";
-        for(auto unknownLexem : unknownLexems) {
+        for (auto unknownLexem : unknownLexems) {
             file << "|\t" << unknownLexem.id << findDistance(10, std::to_string(unknownLexem.id)) << " |\t" << unknownLexem.value << " \n";
             file << "|----------------------------------------------------------------------------------------\n";
         }
@@ -159,11 +168,11 @@ void writeLexems(const std::vector<k_13::Lexem> &lexems, const std::vector<k_13:
     }
 }
 
-std::string findDistance(const int maxSize, const std::string &lexems) {
+std::string findDistance(const int maxSize, const std::string& lexems) {
     int length = maxSize - (lexems.length() - (lexems.length() % 8));
     std::string distance = "";
     int tabs = length / 8;
-    for(int i = 0; i < tabs; i++) {
+    for (int i = 0; i < tabs; i++) {
         distance += "\t";
     }
 

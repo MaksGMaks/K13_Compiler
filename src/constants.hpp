@@ -128,8 +128,7 @@ namespace k_13 {
 
     };
 
-    struct constants_k13
-    {
+    struct constants_k13 {
         std::map<std::string, LexemType> keywords_k13 = {
             {"program", LexemType::PROGRAM},
             {"start", LexemType::START},
