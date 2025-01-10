@@ -19,75 +19,76 @@ namespace k_13 {
     };
 
     enum class LexemType {
-        PROGRAM,            // program
+        PROGRAM,            // program 0
 
-        START,              // start
-        FINISH,             // finish
-        VAR,                // var
+        START,              // start 1
+        FINISH,             // finish 2
+        VAR,                // var 3
 
-        IF,                 // if
-        GOTO,               // goto
-        
-        FOR,                // for
-        TO,                 // to
-        NEXT,               // next
-        
-        GET,                // get (input)
-        PUT,                // put (output)
+        IF,                 // if 4
+        GOTO,               // goto 5
 
-        IDENTIFIER,         // identifier
-        NUMBER,             // number
-        STRING_LITERAL,     // string literal
-        TRUE,               // true
-        FALSE,              // false
+        FOR,                // for 6
+        TO,                 // to 7
+        NEXT,               // next 8
 
-        STRING,             // string (string type)
-        INT,                // int16_t (integer type)
-        BOOL,               // bool (boolean type)
+        GET,                // get (input) 9
+        PUT,                // put (output) 10
 
-        ASSIGN,             // := (assignment)
-        ADD,                // + (addition)
-        SUB,                // - (subtraction)
-        MUL,                // * (multiplication)
-        DIV,                // / (integer division)
-        MOD,                // % (modulus)
+        IDENTIFIER,         // identifier 11
+        NUMBER,             // number 12
+        STRING_LITERAL,     // string literal 13
+        TRUE,               // true 14
+        FALSE,              // false 15
 
-        EQUAL,              // = (equality)
-        NEQUAL,             // <> (inequality)
-        LESS,               // le (less than)
-        GREATER,            // ge (greater than)
+        STRING,             // string (string type) 16
+        INT,                // int16_t (integer type) 17
+        BOOL,               // bool (boolean type) 18
 
-        LABEL,
+        ASSIGN,             // := (assignment) 19
+        ADD,                // + (addition) 20
+        SUB,                // - (subtraction) 21
+        MUL,                // * (multiplication) 22
+        DIV,                // / (integer division) 23
+        MOD,                // % (modulus) 24
 
-        AND,                // && (logical AND)
-        OR,                 // || (logical OR)
-        NOT,                // !! (logical NOT)
 
-        LPAREN,             // ( (left parenthesis)
-        RPAREN,             // ) (right parenthesis)
+        EQUAL,              // = (equality) 25
+        NEQUAL,             // <> (inequality) 26
+        LESS,               // le (less than) 27
+        GREATER,            // ge (greater than) 28
 
-        SEMICOLON,          // ; (semicolon)
-        COMMA,              // , (comma)
+        LABEL,              // label 29
 
-        QUOTES,             // " (string boundaries)
+        AND,                // && (logical AND) 30
+        OR,                 // || (logical OR) 31
+        NOT,                // !! (logical NOT) 32
 
-        UNKNOWN             // unknown token
+        LPAREN,             // ( (left parenthesis) 33
+        RPAREN,             // ) (right parenthesis) 34
+
+        SEMICOLON,          // ; (semicolon) 35
+        COMMA,              // , (comma) 36
+
+        QUOTES,             // " (string boundaries) 37
+
+        UNKNOWN             // unknown token 38
     };
 
     enum class ExpressionType {
-        ASSIGNMENT,         // assignment
-        INPUT,              // input
-        OUTPUT,             // output
-        GOTO,               // goto
-        LABEL,              // label
-        IF,                 // if
-        STARTFOR,           // start for
-        ENDFOR,             // end for
-        START,              // start
-        FINISH,             // finish
-        VARIABLE,           // variable
-        PROGRAM,            // program
-        EXPRESSION          // expression
+        ASSIGNMENT,         // assignment 0
+        INPUT,              // input 1
+        OUTPUT,             // output 2
+        GOTO,               // goto 3
+        LABEL,              // label 4
+        IF,                 // if 5
+        STARTFOR,           // start for 6
+        ENDFOR,             // end for 7
+        START,              // start 8
+        FINISH,             // finish 9
+        VARIABLE,           // variable 10
+        PROGRAM,            // program 11
+        EXPRESSION          // expression 12
     };
     
 
@@ -129,7 +130,7 @@ namespace k_13 {
     };
 
     struct constants_k13 {
-        std::map<std::string, LexemType> keywords_k13 = {
+        std::unordered_map<std::string, LexemType> keywords_k13 = {
             {"program", LexemType::PROGRAM},
             {"start", LexemType::START},
             {"finish", LexemType::FINISH},
@@ -150,7 +151,7 @@ namespace k_13 {
             {"ge", LexemType::GREATER}
         };
 
-        std::map<std::string, LexemType> operators_k13 = {
+        std::unordered_map<std::string, LexemType> operators_k13 = {
             {":=", LexemType::ASSIGN},
             {"+", LexemType::ADD},
             {"-", LexemType::SUB},
@@ -169,7 +170,7 @@ namespace k_13 {
             {"\"", LexemType::QUOTES}
         };
 
-        std::map<LexemType, std::string> enumToStringLexems = {
+        std::unordered_map<LexemType, std::string> enumToStringLexems = {
             {LexemType::PROGRAM, "ProgramKeyword"},
             {LexemType::START, "StartOperator"},
             {LexemType::FINISH, "FinishOperator"},
@@ -207,7 +208,24 @@ namespace k_13 {
             {LexemType::SEMICOLON, "Semicolon"},
             {LexemType::COMMA, "Comma"},
             {LexemType::QUOTES, "Quotes"},
-            {LexemType::UNKNOWN, "UnknownLexem"}
+            {LexemType::UNKNOWN, "UnknownLexem"},
+            {LexemType::LABEL, "Label"}
+        };
+
+        std::unordered_map<ExpressionType, std::string> enumToStringExpressions = {
+            {ExpressionType::ASSIGNMENT, "Assignment"},
+            {ExpressionType::INPUT, "Input"},
+            {ExpressionType::OUTPUT, "Output"},
+            {ExpressionType::GOTO, "Goto"},
+            {ExpressionType::LABEL, "Label"},
+            {ExpressionType::IF, "If"},
+            {ExpressionType::STARTFOR, "StartFor"},
+            {ExpressionType::ENDFOR, "EndFor"},
+            {ExpressionType::START, "Start"},
+            {ExpressionType::FINISH, "Finish"},
+            {ExpressionType::VARIABLE, "Variable"},
+            {ExpressionType::PROGRAM, "Program"},
+            {ExpressionType::EXPRESSION, "Expression"}
         };
     };
 }

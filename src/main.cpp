@@ -9,6 +9,11 @@
 
 void writeLexems(const std::vector<k_13::Lexem>& lexems, const std::vector<k_13::Literal>& literals,
     const std::vector<k_13::UnknownLexem>& unknownLexems, const std::string& outDir);
+void writeIdentifierTable(const std::map<std::string, std::vector<std::pair<int, k_13::ExpressionType>>>& identifiers, const std::string& outDir);
+void writeLabelTable(const std::map<std::string, std::list<std::pair<int, k_13::ExpressionType>>>& labels, const std::string& outDir);
+void writeVariableTable(const std::map<std::string, k_13::LexemType>& variableTable, const std::string& outDir);
+void writeExpressions(const std::list<std::pair<k_13::LexemType, std::vector<k_13::Lexem>>>& expressions, const std::string& outDir);
+void writeKeywords(const std::vector<k_13::Keyword>& keywords, const std::string& outDir);
 
 std::string findDistance(const int maxSize, const std::string& lexems);
 bool isGppInstalled();
@@ -50,6 +55,11 @@ int main(int argc, char* argv[]) {
         switch (syntaxAnalysStatus) {
         case 0:
             std::cout << "[INFO] Syntax analysis done" << std::endl;
+            writeIdentifierTable(syntax.getIdentifiers(), outDir);
+            writeLabelTable(syntax.getLabels(), outDir);
+            writeVariableTable(syntax.getVariableTable(), outDir);
+            writeExpressions(syntax.getExpressions(), outDir);
+
             semanticAnalysStatus = semantic.analyze(syntax.getIdentifiers(), syntax.getLabels(), syntax.getVariableTable(), syntax.getExpressions());
             switch (semanticAnalysStatus) {
             case 0:
@@ -112,7 +122,7 @@ int main(int argc, char* argv[]) {
 }
 
 bool isGppInstalled() {
-    int result = std::system("g++ --version"); //g++ --version > /dev/null 2>&1
+    int result = std::system("g++ --version");
     return (result == 0);
 }
 
@@ -135,12 +145,7 @@ void writeLexems(const std::vector<k_13::Lexem>& lexems, const std::vector<k_13:
         file << "|----------------------------------------------------------------------------------------|\n";
         for (auto lexem : lexems) {
             file << "|\t" << lexem.line << findDistance(14, std::to_string(lexem.line)) << " |\t" << lexem.value << findDistance(10, lexem.value) << " |\t" << lexem.constant << "\t |\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(lexem.type) << " \t|\t";
-            for (auto& enumToString : constants.enumToStringLexems) {
-                if (lexem.type == enumToString.first) {
-                    file << enumToString.second << findDistance(18, enumToString.second) << " |\n";
-                    break;
-                }
-            }
+            file << constants.enumToStringLexems[lexem.type] << findDistance(18, constants.enumToStringLexems[lexem.type]) << " |\n";
             file << "|----------------------------------------------------------------------------------------|\n";
         }
 
@@ -164,6 +169,92 @@ void writeLexems(const std::vector<k_13::Lexem>& lexems, const std::vector<k_13:
             file << "|----------------------------------------------------------------------------------------\n";
         }
 
+        file.close();
+    }
+}
+
+void writeIdentifierTable(const std::map<std::string, std::vector<std::pair<int, k_13::ExpressionType>>> &identifiers, const std::string& outDir) {
+    k_13::constants_k13 constants;
+    std::filesystem::path outputFile = outDir;
+    outputFile /= "allLexems.txt";
+    std::ofstream file(outputFile, std::ios::app);
+    if (file.is_open()) {
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|                                 Identifiers usage                                      |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|   identifier   |   line number   |   expression type   |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        for (auto identifier : identifiers) {
+            for (auto line : identifier.second) {
+                file << "|\t" << identifier.first << findDistance(14, identifier.first) << " |\t" << line.first << findDistance(14, std::to_string(line.first)) << " |\t" << static_cast<std::underlying_type_t<k_13::ExpressionType>>(line.second) << " \t|\t";
+                file << constants.enumToStringExpressions[line.second] << findDistance(18, constants.enumToStringExpressions[line.second]) << " |\n";
+                file << "|----------------------------------------------------------------------------------------|\n";
+            }
+        }
+        file.close();
+    }
+}
+
+void writeLabelTable(const std::map<std::string, std::list<std::pair<int, k_13::ExpressionType>>> &labels, const std::string& outDir) {
+    k_13::constants_k13 constants;
+    std::filesystem::path outputFile = outDir;
+    outputFile /= "allLexems.txt";
+    std::ofstream file(outputFile, std::ios::app);
+    if (file.is_open()) {
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|                                     Labels usage                                       |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|   label   |   line number   |   expression type   |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        for (auto label : labels) {
+            for (auto line : label.second) {
+                file << "|\t" << label.first << findDistance(10, label.first) << " |\t" << line.first << findDistance(14, std::to_string(line.first)) << " |\t" << static_cast<std::underlying_type_t<k_13::ExpressionType>>(line.second) << " \t|\t";
+                file << constants.enumToStringExpressions[line.second] << findDistance(18, constants.enumToStringExpressions[line.second]) << " |\n";
+                file << "|----------------------------------------------------------------------------------------|\n";
+            }
+        }
+        file.close();
+    }
+}
+
+void writeVariableTable(const std::map<std::string, k_13::LexemType> &variableTable, const std::string& outDir) {
+    k_13::constants_k13 constants;
+    std::filesystem::path outputFile = outDir;
+    outputFile /= "allLexems.txt";
+    std::ofstream file(outputFile, std::ios::app);
+    if (file.is_open()) {
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|                                     Variables table                                     |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|   variable   |   type   |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        for (auto variable : variableTable) {
+            file << "|\t" << variable.first << findDistance(14, variable.first) << " |\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(variable.second) << " \t|\t";
+            file << constants.enumToStringLexems[variable.second] << findDistance(18, constants.enumToStringLexems[variable.second]) << " |\n";
+            file << "|----------------------------------------------------------------------------------------|\n";
+        }
+        file.close();
+    }
+}
+
+void writeExpressions(const std::list<std::pair<k_13::LexemType, std::vector<k_13::Lexem>>> &expressions, const std::string& outDir) {
+    std::filesystem::path outputFile = outDir;
+    outputFile /= "allLexems.txt";
+    std::ofstream file(outputFile, std::ios::app);
+    if (file.is_open()) {
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|                                     Expressions table                                   |\n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        file << "|   expression type   |   expression   \n";
+        file << "|----------------------------------------------------------------------------------------|\n";
+        for (auto expression : expressions) {
+            file << "|\t" << static_cast<std::underlying_type_t<k_13::LexemType>>(expression.first) << findDistance(20, std::to_string(static_cast<std::underlying_type_t<k_13::LexemType>>(expression.first))) << " |\t";
+            for (auto lexem : expression.second) {
+                file << lexem.value << " ";
+            }
+            file << "|\n";
+            file << "|----------------------------------------------------------------------------------------|\n";
+        }
         file.close();
     }
 }
